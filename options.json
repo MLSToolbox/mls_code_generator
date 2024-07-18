@@ -1,0 +1,94 @@
+{
+    "options" : {
+        "join_type" : [
+            "inner",
+            "outer",
+            "inner left",
+            "inner right",
+            "outer left",
+            "outer right"
+        ],
+        "color" : [
+            "rgba(255, 99, 132, 0.75)",
+            "rgba(54, 162, 235, 0.75)",
+            "rgba(255, 206, 86, 0.75)",
+            "rgba(75, 192, 192, 0.75)",
+            "rgba(153, 102, 255, 0.75)",
+            "rgba(255, 159, 64, 0.75)"
+        ],
+        "data_source" : [
+            "local",
+            "url"
+        ],
+        "decompose_type" : [
+            "PCA",
+            "ICA",
+            "LDA",
+            "SVD",
+            "t-SNE"
+        ],
+        "scaler_type" : [
+            "Standard",
+            "MinMax",
+            "MaxAbs",
+            "Robust"
+        ],
+        "socket_type" : [
+            "Any",
+            "DataFrame",
+            "Model",
+            "Result",
+            "Object"
+        ],
+        "encoder_type" : [
+            "OneHotEncoder",
+            "LabelEncoder",
+            "OrdinalEncoder"
+        ],
+        "parameter_type" : [
+            "Number",
+            "String"
+        ]
+    },
+    "option_of_options":
+    {
+        "model_type":
+        [
+            {
+                "label" : "Linear Models",
+                "value": "Linear Models",
+                "items": [
+                    {"label":"Linear Regression", "value" :"Linear Regression"},
+                    {"label":"Logistic Regression", "value" :"Logistic Regression"},
+                    {"label":"Ridge Regression", "value" :"Ridge Regression"},
+                    {"label":"Lasso Regression", "value" :"Lasso Regression"},
+                    {"label":"Elastic Net", "value" :"Elastic Net"}
+                ]
+            },
+            {
+                "label" : "Tree Models",
+                "value": "Tree Models",
+                "items": [
+                    {"label":"Decision Tree", "value":"Decision Tree"},
+                    {"label":"Random Forest", "value":"Random Forest"},
+                    {"label":"Gradient Boosting", "value":"Gradient Boosting"},
+                    {"label":"AdaBoost", "value":"AdaBoost"}
+                ]
+            },
+            {
+                "label" : "Support Vector Machines",
+                "value": "Support Vector Machines",
+                "items": [
+                    {"label":"SVM", "value":"SVM"}
+                ]
+            },
+            {
+                "label" : "Stochastic Gradient Descent",
+                "value": "Stochastic Gradient Descent",
+                "items": [
+                    {"label":"SGD", "value":"SGD"}
+                ]
+            }
+        ]
+    }
+}
