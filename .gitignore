@@ -29,3 +29,5 @@ replay_pid*
 editor.json
 fixed_editor.json
 output/*
+.vscode/*
+.vscode

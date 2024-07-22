@@ -1,6 +1,6 @@
 from mls.data_cleaning import DataCleaningStep
 
-class ReplaceNan(DataCleaningStep):
+class ReplaceValue(DataCleaningStep):
     def __init__(self, value_from, value_to, origin):
         super().__init__(
             origin = origin
