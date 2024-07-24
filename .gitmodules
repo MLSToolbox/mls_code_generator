@@ -1,0 +1,3 @@
+[submodule "src/mls_lib"]
+	path = src/mls_lib
+	url = https://github.com/MLS-Toobox/mls_lib
