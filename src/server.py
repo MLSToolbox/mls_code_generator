@@ -8,7 +8,7 @@ from mls_code_generator.utils import fix_editor
 
 app = Flask(__name__)
 
-@app.route('/api/create_app', methods=['GET'])
+@app.route('/api/create_app', methods=['GET','POST'])
 @cross_origin()
 def create_app():
 
