@@ -11,7 +11,6 @@ app = Flask(__name__)
 @app.route('/api/create_app', methods=['GET','POST'])
 @cross_origin()
 def create_app():
-
     content = request.json
     
     code_json = fix_editor(content["code"])
@@ -50,12 +49,12 @@ def create_app():
 @app.route('/', methods=['GET', 'POST'])
 @cross_origin()
 def home():
-    return 'hello'
+    return 'hello from mls_code_generator'
 
 if __name__ == '__main__':
     from waitress import serve
     from flask_cors import CORS
     CORS(app, supports_credentials=True, origins=['*'])
     app.config["CORS_HEADERS"] = ["Content-Type", "X-Requested-With", "X-CSRFToken"]
-    #app.run(host= '0.0.0.0', port= 5050, debug=True)
-    serve(app, host="0.0.0.0", port=5050)
+    app.run(host= '0.0.0.0', port= 5050, debug=True)
+    #serve(app, host="0.0.0.0", port=5050)
