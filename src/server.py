@@ -2,8 +2,6 @@ from flask import Flask, request
 from flask_cors import cross_origin
 import os, shutil, uuid
 
-from sympy import python
-
 from mls_code_generator import ConfigLoader, PipelineLoader, CodeGenerator, CodePacker
 from mls_code_generator.types import Pipeline
 from mls_code_generator.utils import fix_editor
