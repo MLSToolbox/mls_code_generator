@@ -12,6 +12,6 @@ class CodePacker():
             file.write(module_code)
             file.close()
 
-        shutil.copytree(mls_path, write_path+'/mls')
+        shutil.copytree(mls_path, write_path+'/mls_lib')
 
             

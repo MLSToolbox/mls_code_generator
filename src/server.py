@@ -2,15 +2,18 @@ from flask import Flask, request
 from flask_cors import cross_origin
 import os, shutil, uuid
 
+from sympy import python
+
 from mls_code_generator import ConfigLoader, PipelineLoader, CodeGenerator, CodePacker
 from mls_code_generator.types import Pipeline
 from mls_code_generator.utils import fix_editor
 
 app = Flask(__name__)
 
-@app.route('/api/create_app', methods=['GET', 'POST'])
+@app.route('/api/create_app', methods=['GET'])
 @cross_origin()
 def create_app():
+
     content = request.json
     
     code_json = fix_editor(content["code"])
@@ -33,7 +36,7 @@ def create_app():
     code_packer.generatePackage(
         code = code_generator.getModules(),
         write_path = path,
-        mls_path = "./mls")
+        mls_path = "./mls_lib")
     
     shutil.make_archive(path_head, 'zip', path_head)
 
@@ -44,7 +47,7 @@ def create_app():
     os.remove(path_head+'.zip')
     shutil.rmtree(path_head)
 
-    return data   
+    return data
 
 @app.route('/', methods=['GET', 'POST'])
 @cross_origin()
@@ -56,4 +59,5 @@ if __name__ == '__main__':
     from flask_cors import CORS
     CORS(app, supports_credentials=True, origins=['*'])
     app.config["CORS_HEADERS"] = ["Content-Type", "X-Requested-With", "X-CSRFToken"]
-    serve(app, host="0.0.0.0", port=8080)
+    #app.run(host= '0.0.0.0', port= 5050, debug=True)
+    serve(app, host="0.0.0.0", port=5050)
