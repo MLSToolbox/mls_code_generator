@@ -60,13 +60,13 @@ def get_config():
     socket_config_path = './config/sockets.json'
 
     with open(node_config_path, 'r') as file:
-        node_config = json.load(file.read())
+        node_config = json.load(file)
 
     with open(options_config_path, 'r') as file:
-        options_config = json.load(file.read())
+        options_config = json.load(file)
 
     with open(socket_config_path, 'r') as file:
-        socket_config = json.load(file.read())
+        socket_config = json.load(file)
 
     return {
         'nodes' : node_config,
