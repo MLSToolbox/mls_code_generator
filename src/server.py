@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, json, request
 from flask_cors import cross_origin
 import os, shutil, uuid
 
@@ -60,13 +60,13 @@ def get_config():
     socket_config_path = './config/sockets.json'
 
     with open(node_config_path, 'r') as file:
-        node_config = file.read()
+        node_config = json.load(file.read())
 
     with open(options_config_path, 'r') as file:
-        options_config = file.read()
+        options_config = json.load(file.read())
 
     with open(socket_config_path, 'r') as file:
-        socket_config = file.read()
+        socket_config = json.load(file.read())
 
     return {
         'nodes' : node_config,
