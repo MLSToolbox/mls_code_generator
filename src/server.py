@@ -51,6 +51,29 @@ def create_app():
 def home():
     return 'hello from mls_code_generator'
 
+
+@app.route('/api/get_config', methods=['GET', 'POST'])
+@cross_origin()
+def get_config():
+    node_config_path = './src/config/nodes.json'
+    options_config_path = './src/config/options.json'
+    socket_config_path = './src/config/sockets.json'
+
+    with open(node_config_path, 'r') as file:
+        node_config = file.read()
+
+    with open(options_config_path, 'r') as file:
+        options_config = file.read()
+
+    with open(socket_config_path, 'r') as file:
+        socket_config = file.read()
+
+    return {
+        'nodes' : node_config,
+        'options' : options_config,
+        'sockets' : socket_config
+    }
+
 if __name__ == '__main__':
     from waitress import serve
     from flask_cors import CORS

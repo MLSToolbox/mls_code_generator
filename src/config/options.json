@@ -16,17 +16,6 @@
             "rgba(153, 102, 255, 0.75)",
             "rgba(255, 159, 64, 0.75)"
         ],
-        "data_source" : [
-            "local",
-            "url"
-        ],
-        "decompose_type" : [
-            "PCA",
-            "ICA",
-            "LDA",
-            "SVD",
-            "t-SNE"
-        ],
         "scaler_type" : [
             "Standard",
             "MinMax",
@@ -38,12 +27,13 @@
             "DataFrame",
             "Model",
             "Result",
-            "Object"
+            "Object",
+            "Encoder",
+            "Scaler"
         ],
         "encoder_type" : [
             "OneHotEncoder",
-            "LabelEncoder",
-            "OrdinalEncoder"
+            "CatBoostEncoder"
         ],
         "parameter_type" : [
             "Number",
@@ -58,20 +48,20 @@
                 "label" : "Linear Models",
                 "value": "Linear Models",
                 "items": [
-                    {"label":"Linear Regression", "value" :"Linear Regression"},
-                    {"label":"Logistic Regression", "value" :"Logistic Regression"},
-                    {"label":"Ridge Regression", "value" :"Ridge Regression"},
-                    {"label":"Lasso Regression", "value" :"Lasso Regression"},
-                    {"label":"Elastic Net", "value" :"Elastic Net"}
+                    {"label":"Linear Regression", "value" :"LinearRegression"},
+                    {"label":"Logistic Regression", "value" :"LogisticRegression"},
+                    {"label":"Ridge Regression", "value" :"RidgeRegression"},
+                    {"label":"Lasso Regression", "value" :"LassoRegression"},
+                    {"label":"Elastic Net", "value" :"ElasticNet"}
                 ]
             },
             {
                 "label" : "Tree Models",
                 "value": "Tree Models",
                 "items": [
-                    {"label":"Decision Tree", "value":"Decision Tree"},
-                    {"label":"Random Forest", "value":"Random Forest"},
-                    {"label":"Gradient Boosting", "value":"Gradient Boosting"},
+                    {"label":"Decision Tree", "value":"DecisionTree"},
+                    {"label":"Random Forest", "value":"RandomForest"},
+                    {"label":"Gradient Boosting", "value":"GradientBoosting"},
                     {"label":"AdaBoost", "value":"AdaBoost"}
                 ]
             },
