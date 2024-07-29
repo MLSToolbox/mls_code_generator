@@ -1,3 +1,6 @@
 [submodule "src/mls_lib"]
 	path = src/mls_lib
 	url = https://github.com/MLS-Toobox/mls_lib
+[submodule "src/mls_code_generator_config"]
+	path = src/mls_code_generator_config
+	url = https://github.com/MLS-Toobox/mls_code_generator_config
