@@ -55,9 +55,9 @@ def home():
 @app.route('/api/get_config', methods=['GET', 'POST'])
 @cross_origin()
 def get_config():
-    node_config_path = './config/nodes.json'
-    options_config_path = './config/options.json'
-    socket_config_path = './config/sockets.json'
+    node_config_path = './mls_code_generator_config/nodes.json'
+    options_config_path = './mls_code_generator_config/options.json'
+    socket_config_path = './mls_code_generator_config/sockets.json'
 
     with open(node_config_path, 'r') as file:
         node_config = json.load(file)
