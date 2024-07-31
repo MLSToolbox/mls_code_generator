@@ -33,7 +33,7 @@ def create_app():
     code_packer.generatePackage(
         code = code_generator.getModules(),
         write_path = path,
-        mls_path = "./mls_lib")
+        mls_path = "./mls_lib/mls_lib")
     
     shutil.make_archive(path_head, 'zip', path_head)
 
