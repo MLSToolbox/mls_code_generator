@@ -100,8 +100,11 @@ class Node:
 			final_code += "\t" + param + " = '" + str(self.getParam(param)) + "',\n"
 		for dependency in self.dependencies:
 			inp, inp_port, me, me_port = dependency
-			final_code += "\t" + me_port + " = (" + inp.variable_name + \
-						", '" + inp_port + "'),\n"
+			if inp.nodeName == "Input":
+				final_code += "\t" + me_port + " = self._getInputStep('" + inp.getParam('key')+"'),\n"
+			else:
+				final_code += "\t" + me_port + " = (" + inp.variable_name + \
+							", '" + inp_port + "'),\n"
 		final_code += ")\n"
 		return final_code
 	

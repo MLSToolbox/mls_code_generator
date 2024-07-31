@@ -14,17 +14,21 @@ class CodeGenerator:
 			code = c_step.getDependenciesCode()
 			code += "\n"
 			code += "class " + c_step.rName +"(Step):\n"
-			code += "\tdef __init__(self, **kwargs):\n"
-			code += "\t\tsuper().__init__(**kwargs)\n"
+			code += "\tdef __init__(self, **inputs):\n"
+			code += "\t\tsuper().__init__(**inputs)\n"
 			
 			code += "\t\tself.orchestrator = Orchestrator()\n"
-
-			step_code = c_step.generateCode() 
-			for j in step_code.split("\n"):
+ 
+			for j in c_step.generateCode().split("\n"):
 				code += "\t\t" + j + "\n"
 
 			code += "\tdef execute(self):\n"
 			code += "\t\tself.orchestrator.execute()\n"
+
+			for j in c_step.getOutputCode().split("\n"):
+				code += "\t\t" + j + "\n"
+
+			code += "\n\t\tself.finishExecution()"
 
 			self.modules[c_step.rName] = code
 			
@@ -37,7 +41,7 @@ class CodeGenerator:
 	def __generateMainCode(self, pipeline):
 		root = pipeline.getStep('root')
 		steps = root.nodes
-		code = "from mls.orchestration import Orchestrator\n"
+		code = "from mls_lib.orchestration import Orchestrator\n"
 
 
 		for step in steps:
@@ -60,7 +64,7 @@ class CodeGenerator:
 				node.origin_label = c_step.rName
 				node.params = dict()
 				code += "\t" + "\n\t".join(node.generateCode().split("\n"))
-				code += "root.add(" + variable_name + ")\n"
+				code += "root.add(" + "'" + variable_name + "', " + variable_name + ")\n"
 				node_dependencies.append(variable_name)
 				code += "\n"
 				copy_nodes.remove(node)

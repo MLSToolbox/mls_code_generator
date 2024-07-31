@@ -56,6 +56,12 @@ class Step:
 				if node_count[node.nodeName] > 1:
 					variable_name += "_" + str(node_count[node.nodeName])
 				node.variable_name = variable_name
+				if node.nodeName == 'Input' or node.nodeName == 'Output':
+					copy_nodes.remove(node)
+					for p in node.sources:
+						for target, target_port in node.sources[p]:
+							target.pastDependency(target, target_port)
+					continue
 				code += node.generateCode()
 				code += "self.orchestrator.add(" + variable_name + ")\n"
 				node_dependencies.append(variable_name)
@@ -82,12 +88,21 @@ class Step:
 		dependencies["orchestration"].add("Step")
 		dependencies["orchestration"].add("Orchestrator")
 		for dep in dependencies.keys():
-			code += "from mls." + dep + " import " + ", ".join(dependencies[dep]) + "\n"
+			code += "from mls_lib." + dep + " import " + ", ".join(dependencies[dep]) + "\n"
 		return code
 
 	def getOutput(self, source):
 		return "NO OUTPUT IN PACKAGE: " + self.name
-
+	
+	def getOutputCode(self):
+		code = ""
+		for node in self.nodes:
+			if node.nodeName == 'Output':
+				dep, port, _, _ = node.dependencies[0]
+				code += "self._setOutput('" + node.getParam('key') + "',\n"
+				code += "\tself.orchestrator.getStepOutput('" + dep.variable_name + "', '" + port + "'))\n" 
+		return code
+	
 	def setInputOrigin(self, target, origin):
 		for node in self.nodes:
 			if (node.nodeName == 'Input') and (node.params["key"]["value"] == target):

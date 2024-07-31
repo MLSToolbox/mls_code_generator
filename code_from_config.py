@@ -4,7 +4,7 @@ from src.mls_code_generator.types import Pipeline
 
 def main():
 	editor_path = 'fixed_editor.json'
-	nodes_config_path = './src/config/nodes.json'
+	nodes_config_path = './src/mls_code_generator_config/nodes.json'
 	
 	content_json = json.load(open(editor_path))
 	nodes_config_json = json.load(open(nodes_config_path))
@@ -22,10 +22,8 @@ def main():
 	code_packer.generatePackage(
 		code = code_generator.getModules(),
 		write_path = "./output/src/",
-		mls_path = "./src/mls")
-	
-	pass
-
+		mls_path = "./src/mls_lib/mls_lib/"
+	)
 
 if __name__ == '__main__':
 	main()
