@@ -117,10 +117,10 @@ class Node:
 				final_code += "\t\t'" + str(param_list[-1]) + "'\n\t],\n"
 			elif (self.getParamType(param) == "map"):
 				param_map = self.getParam(param)
-				final_code += "\t" + param + " = { \n\t{\n"
+				final_code += "\t" + param + " = {\n"
 				for sub_map in param_map[:-1]:
 					final_code += "\t\t'" + str(sub_map['key']) + "': '" + str(sub_map['value']) + "',\n"
-				final_code += "\t\t'" + str(param_map[-1]['key']) + "': '" + str(param_map[-1]['value']) + "'\n\t},\n"
+				final_code += "\t\t'" + str(param_map[-1]['key']) + "': '" + str(param_map[-1]['value']) 
 				final_code += "\t},\n"
 			else:
 				raise Exception("Unknown param type: " + self.getParamType(param))
