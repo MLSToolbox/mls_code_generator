@@ -30,7 +30,7 @@ class Step:
 	
 	def setData(self, data):
 		self.data = data
-		self.name = data['params']['description']['value'].replace("-"," ")
+		self.name = data['params']['Stage name']['value'].replace("-"," ")
 		self.rName = "".join([i.capitalize() for i in self.name.split(" ")])
 		self.name = self.name.lower()
 		self.name = self.name.replace(' ', '_')
@@ -63,7 +63,7 @@ class Step:
 							target.pastDependency(target, target_port)
 					continue
 				code += node.generateCode()
-				code += "self.orchestrator.add(" + variable_name + ")\n"
+				code += "self.orchestrator.add('" + variable_name + "', " + variable_name + ")\n"
 				node_dependencies.append(variable_name)
 				code += "\n"
 				copy_nodes.remove(node)

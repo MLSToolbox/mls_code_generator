@@ -20,14 +20,14 @@ class Node:
 		self.data = data
 		if self.nodeName is None:
 			self.nodeName = data['nodeName']
-		for params in data['params']:
-			self.params[params] = dict()
+		for param in data['params']:
+			self.params[param] = dict()
 			try:
-				param_val = data['params'][params]['value']
-				self.params[params]['value'] = param_val
+				param_val = data['params'][param]['value']
+				self.params[param]['value'] = param_val
 			except KeyError:
-				self.params[params]['value'] = ""
-			self.params[params]['type'] = data['params'][params]['type']
+				self.params[param]['value'] = ""
+			self.params[param]['type'] = data['params'][param]['type']
 		self.origin_label = ""
 		if "custom" in self.origin:
 			self.origin_label = self.origin["custom"]
@@ -75,6 +75,12 @@ class Node:
 			return "NO PARAM FOUND: " + label + " in " + self.nodeName
 
 		return self.params[label]['value']
+	
+	def getParamType(self, label):
+		if label not in self.params:
+			return "NO PARAM FOUND: " + label + " in " + self.nodeName
+
+		return self.params[label]['type']
 
 	def __repr__(self) -> str:
 		return self.nodeName
@@ -93,11 +99,31 @@ class Node:
 				final_code += "# " + str(self.getParam("description")) + "\n"
 		final_code += self.variable_name + " = " + self.origin_label + "(\n"
 		for param in self.params:
-			if param == "description":
+			if self.getParamType(param) == "description":
 				continue
 			if ( "parameter" in self.origin ) and ( param == self.origin["parameter"] ):
 				continue
-			final_code += "\t" + param + " = '" + str(self.getParam(param)) + "',\n"
+			if (self.getParamType(param) in ["string", "option", "option_of_options"]):
+				final_code += "\t" + param + " = '" + str(self.getParam(param)) + "',\n"
+			elif (self.getParamType(param) == "number"):
+				final_code += "\t" + param + " = " + str(self.getParam(param)) + ",\n"
+			elif (self.getParamType(param) == "boolean"):
+				final_code += "\t" + param + " = " + str(self.getParam(param)).lower() + ",\n"
+			elif (self.getParamType(param) == "list"):
+				param_list = self.getParam(param)
+				final_code += "\t" + param + " = [\n"
+				for value in param_list[:-1]:
+					final_code += "\t\t'" + str(value) + "',\n"
+				final_code += "\t\t'" + str(param_list[-1]) + "'\n\t],\n"
+			elif (self.getParamType(param) == "map"):
+				param_map = self.getParam(param)
+				final_code += "\t" + param + " = { \n\t{\n"
+				for sub_map in param_map[:-1]:
+					final_code += "\t\t'" + str(sub_map['key']) + "': '" + str(sub_map['value']) + "',\n"
+				final_code += "\t\t'" + str(param_map[-1]['key']) + "': '" + str(param_map[-1]['value']) + "'\n\t},\n"
+				final_code += "\t},\n"
+			else:
+				raise Exception("Unknown param type: " + self.getParamType(param))
 		for dependency in self.dependencies:
 			inp, inp_port, me, me_port = dependency
 			if inp.nodeName == "Input":

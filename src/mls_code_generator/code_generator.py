@@ -46,7 +46,7 @@ class CodeGenerator:
 
 		for step in steps:
 			c_step = pipeline.getStep(step.id)
-			code += "from . " + c_step.rName + " import " + c_step.rName + "\n"
+			code += "from " + c_step.rName + " import " + c_step.rName + "\n"
 
 		code += "\n"
 		code += "def main():\n"
@@ -74,6 +74,7 @@ class CodeGenerator:
 				break
 
 		code += "\troot.execute()\n"
+		code += "\nif __name__ == '__main__':\n\tmain()"
 
 		self.modules["main"] = code
 
