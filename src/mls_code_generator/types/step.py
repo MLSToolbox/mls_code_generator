@@ -1,112 +1,187 @@
+from . node import Node
+
 class Step:
-	def __init__(self, id):
-		self.id = id
-		self.nodes = []
-		self.data = ""
-		self.name = ""
-		self.outs = []
+    def __init__(self, id : str) -> None:
+        self.id = id
+        self.nodes = []
+        self.data = ""
+        self.name = ""
+        self.r_name = ""
+        self.outs = []
 
-	def addNode(self, node):
-		self.nodes.append(node)
-	
-	def addConnection(self, source, target, sourcePort, targetPort):
-		# find target node
-		targetNode = None
-		for node in self.nodes:
-			if node.id == target:
-				targetNode = node
-				break
-		
-		# find source node
-		sourceNode = None
-		for node in self.nodes:
-			if node.id == source:
-				sourceNode = node
-				break
-		
-		# add dependency
-		targetNode.addDependency(targetNode, targetPort, sourceNode, sourcePort)
-		sourceNode.addSource(sourcePort, targetNode, targetPort)
-	
-	def setData(self, data):
-		self.data = data
-		self.name = data['params']['Stage name']['value'].replace("-"," ")
-		self.rName = "".join([i.capitalize() for i in self.name.split(" ")])
-		self.name = self.name.lower()
-		self.name = self.name.replace(' ', '_')
-	
-	def generateCode(self):
-		print("Generating code for module: ", self.name)
-		code = ""
-		copy_nodes = self.nodes.copy()
-		node_count = dict()
-		node_dependencies = []
-		while(len(copy_nodes) > 0):
-			for node in copy_nodes:
-				if node.nodeName == 'Parameter':
-					copy_nodes.remove(node)
-					continue
-				if not node.isReady():
-					continue
-				if node_count.get(node.nodeName) is None:
-					node_count[node.nodeName] = 1
-				else:
-					node_count[node.nodeName] += 1
-				variable_name = node.nodeName.replace(" ", "_").lower()
-				if node_count[node.nodeName] > 1:
-					variable_name += "_" + str(node_count[node.nodeName])
-				node.variable_name = variable_name
-				if node.nodeName == 'Input' or node.nodeName == 'Output':
-					copy_nodes.remove(node)
-					for p in node.sources:
-						for target, target_port in node.sources[p]:
-							target.pastDependency(target, target_port)
-					continue
-				code += node.generateCode()
-				code += "self.orchestrator.add('" + variable_name + "', " + variable_name + ")\n"
-				node_dependencies.append(variable_name)
-				code += "\n"
-				copy_nodes.remove(node)
-				for p in node.sources:
-					for target, target_port in node.sources[p]:
-						target.pastDependency(target, target_port)
-				break
+    def add_node(self, node : Node) -> None:
+        """
+        Adds a new node to the step's collection of nodes.
 
-		return code
-	def getDependenciesCode(self):
-		dependencies = dict()
-		for node in self.nodes:
-			node_dep = node.getDependencies()
-			for dep in node_dep.keys():
-				if dep not in dependencies:
-					dependencies[dep] = set()
-				dependencies[dep].update(node_dep[dep])
+        Args:
+            node (Node): The node to be added to the step.
 
-		code = ""
-		if "orchestration" not in dependencies:
-			dependencies["orchestration"] = set()
-		dependencies["orchestration"].add("Step")
-		dependencies["orchestration"].add("Orchestrator")
-		for dep in dependencies.keys():
-			code += "from mls_lib." + dep + " import " + ", ".join(dependencies[dep]) + "\n"
-		return code
+        Returns:
+            None
+        """
+        self.nodes.append(node)
+    def add_connection(self, source : str, target : str,
+                       source_port : str, target_port : str) -> None:
+        """
+        Establishes a connection between two nodes within the step.
 
-	def getOutput(self, source):
-		return "NO OUTPUT IN PACKAGE: " + self.name
-	
-	def getOutputCode(self):
-		code = ""
-		for node in self.nodes:
-			if node.nodeName == 'Output':
-				dep, port, _, _ = node.dependencies[0]
-				code += "self._setOutput('" + node.getParam('key') + "',\n"
-				code += "\tself.orchestrator.getStepOutput('" + dep.variable_name + "', '" + port + "'))\n" 
-		return code
-	
-	def setInputOrigin(self, target, origin):
-		for node in self.nodes:
-			if (node.nodeName == 'Input') and (node.params["key"]["value"] == target):
-				node.params = {
-					"key" : node.params["key"]
-				}
-				break
+        Args:
+            source (str): The ID of the source node.
+            target (str): The ID of the target node.
+            source_port (str): The port of the source node.
+            target_port (str): The port of the target node.
+
+        Returns:
+            None
+        """
+        # find target node
+        target_node = None
+        for node in self.nodes:
+            if node.id == target:
+                target_node = node
+                break
+        # find source node
+        source_node = None
+        for node in self.nodes:
+            if node.id == source:
+                source_node = node
+                break
+        # add dependency
+        target_node.add_dependency(target_node, target_port, source_node, source_port)
+        source_node.add_source(source_port, target_node, target_port)
+    def set_data(self, data):
+        """
+        Sets the data for the current step.
+
+        Args:
+            data (dict): The data to be set.
+
+        Returns:
+            None
+        """
+        self.data = data
+        self.name = data['params']['Stage name']['value'].replace("-"," ")
+        self.r_name = "".join([i.capitalize() for i in self.name.split(" ")])
+        self.name = self.name.lower()
+        self.name = self.name.replace(' ', '_')
+    def generate_code(self):
+        """
+        Generates the code for the current step by iterating over its nodes, 
+        resolving dependencies, and generating code for each node.
+
+        Parameters:
+            None
+
+        Returns:
+            str: The generated code for the current step.
+        """
+        print("Generating code for module: ", self.name)
+        code = ""
+        copy_nodes = self.nodes.copy()
+        node_count = dict()
+        node_dependencies = []
+        while(len(copy_nodes) > 0):
+            for node in copy_nodes:
+                if node.node_name == 'Parameter':
+                    copy_nodes.remove(node)
+                    continue
+                if not node.is_ready():
+                    continue
+                if node_count.get(node.node_name) is None:
+                    node_count[node.node_name] = 1
+                else:
+                    node_count[node.node_name] += 1
+                variable_name = node.node_name.replace(" ", "_").lower()
+                if node_count[node.node_name] > 1:
+                    variable_name += "_" + str(node_count[node.node_name])
+                node.variable_name = variable_name
+                if node.node_name in ['Input', 'Output']:
+                    copy_nodes.remove(node)
+                    for p in node.sources:
+                        for target, target_port in node.sources[p]:
+                            target.past_dependency(target, target_port)
+                    continue
+                code += node.generate_code()
+                code += "self.orchestrator.add('" + variable_name + "', " + variable_name + ")\n"
+                node_dependencies.append(variable_name)
+                code += "\n"
+                copy_nodes.remove(node)
+                for p in node.sources:
+                    for target, target_port in node.sources[p]:
+                        target.past_dependency(target, target_port)
+                break
+        return code
+    def get_dependencies_code(self):
+        """
+        Generates the import statements for the dependencies of the current step.
+
+        This function iterates over each node in the step and retrieves its dependencies.
+        It then collects the dependencies into a dictionary, where the keys are the module names
+        and the values are sets of the specific dependencies for each module.
+
+        If the "orchestration" module is not present in the dependencies dictionary, it is added
+        with the "Step" and "Orchestrator" dependencies.
+
+        Finally, the function constructs the import statements by iterating over the keys of the
+        dependencies dictionary and constructing the import statement for each module. The import
+        statement includes the module name and the specific dependencies for that module.
+
+        Returns:
+            str: The import statements for the dependencies of the current step.
+        """
+        dependencies = {}
+        for node in self.nodes:
+            node_dep = node.get_dependencies()
+            for dep in node_dep.keys():
+                if dep not in dependencies:
+                    dependencies[dep] = set()
+                dependencies[dep].update(node_dep[dep])
+
+        code = ""
+        if "orchestration" not in dependencies:
+            dependencies["orchestration"] = set()
+        dependencies["orchestration"].add("Step")
+        dependencies["orchestration"].add("Orchestrator")
+        for dep, val in dependencies.items():
+            code += "from mls_lib." + dep + " import " + ", ".join(val) + "\n"
+        return code
+
+    def get_output(self, source):
+        return "NO OUTPUT IN PACKAGE: " + self.name
+    def get_output_code(self):
+        """
+        Generates the code for setting the output of the current step.
+
+        This function iterates over each node in the step and checks if the node is an 'Output' node.
+        If it is, the function generates the code for setting the output of the step using the 
+        'get_step_output' method of the orchestrator.
+
+        Returns:
+            str: The generated code for setting the output of the step.
+        """
+        code = ""
+        for node in self.nodes:
+            if node.node_name == 'Output':
+                if len(node.dependencies) > 0:
+                    dep, port, _, _ = node.dependencies[0]
+                    code += "self._set_output('" + node.get_param('key') + "',\n"
+                    code += "\tself.orchestrator.get_step_output('" + \
+                        dep.variable_name + "', '" + port + "'))\n"
+        return code
+    def set_input_origin(self, target, origin):
+        """
+        Sets the origin of an input node in the step.
+
+        Args:
+            target (str): The key of the input node to set the origin for.
+            origin (str): The origin to set for the input node.
+
+        Returns:
+            None
+        """
+        for node in self.nodes:
+            if (node.node_name == 'Input') and (node.params["key"]["value"] == target):
+                node.params = {
+                    "key" : node.params["key"]
+                }
+                break

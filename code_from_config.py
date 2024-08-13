@@ -13,14 +13,14 @@ def main():
 	pipeline_loader = PipelineLoader(content_json, node_configuration)
 
 	pipeline = Pipeline()
-	pipeline.loadPipeline(pipeline_loader)
+	pipeline.load_pipeline(pipeline_loader)
 	
 	code_generator = CodeGenerator()
-	code_generator.generateCode(pipeline)
+	code_generator.generate_code(pipeline)
 
 	code_packer = CodePacker()
-	code_packer.generatePackage(
-		code = code_generator.getModules(),
+	code_packer.generate_package(
+		code = code_generator.get_modules(),
 		write_path = "./output/src/",
 		mls_path = "./src/mls_lib/mls_lib/"
 	)
