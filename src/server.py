@@ -113,5 +113,13 @@ def get_config():
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, origins=['*'])
     app.config["CORS_HEADERS"] = ["Content-Type", "X-Requested-With", "X-CSRFToken"]
-    app.run(host= '0.0.0.0', port= 5050, debug=True)
-    #serve(app, host="0.0.0.0", port=5050)
+
+    execution_mode = os.getenv("EXECUTION_MODE", "debug")
+
+    HOST = '0.0.0.0'
+    PORT = 5050
+
+    if execution_mode == "prod":
+        serve(app, host = HOST, port = PORT )
+    else:
+        app.run(host = HOST, port = PORT, debug = True)

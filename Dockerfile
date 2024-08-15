@@ -7,5 +7,7 @@ RUN pip3 install -r requirements.txt
 
 COPY ./src /app
 
+ENV EXECUTION_MODE "prod"
+
 ENTRYPOINT ["python3"]
 CMD ["server.py"]
