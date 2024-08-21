@@ -22,11 +22,12 @@ class CodePacker():
             module_write_path = write_path + str(module) + ".py"
 
             file = open(module_write_path, 'w', encoding='utf-8')
+            module_code.replace("\t", "    ")
             file.write(module_code)
             file.close()
 
-        file = open(write_path + "__init__.py", 'w', encoding='utf-8')
-        file.write("")
-        file.close()
+        # file = open(write_path + "__init__.py", 'w', encoding='utf-8')
+        # file.write("")
+        # file.close()
 
         shutil.copytree(mls_path, write_path+'/mls_lib')

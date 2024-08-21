@@ -164,9 +164,17 @@ class Step:
             if node.node_name == 'Output':
                 if len(node.dependencies) > 0:
                     dep, port, _, _ = node.dependencies[0]
-                    code += "self._set_output('" + node.get_param('key') + "',\n"
-                    code += "\tself.orchestrator.get_step_output('" + \
-                        dep.variable_name + "', '" + port + "'))\n"
+                    if dep.node_name == 'Input':
+                        dep_tag = dep.get_param('key')
+                        dep_tag.replace(' ', '_')
+                        code += dep_tag + ', ' + dep_tag + "_port = self._get_input_step('"
+                        code += dep.get_param('key') + "')\n"
+                        code += "self._set_output('" + node.get_param('key') + "', "
+                        code += dep_tag + ".get_output(" + dep_tag + "_port))\n"
+                    else:
+                        code += "self._set_output('" + node.get_param('key') + "',\n"
+                        code += "\tself.orchestrator.get_step_output('" + \
+                            dep.variable_name + "', '" + port + "'))\n"
         return code
     def set_input_origin(self, target, origin):
         """

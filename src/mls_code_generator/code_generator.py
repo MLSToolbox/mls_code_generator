@@ -24,10 +24,12 @@ class CodeGenerator:
 
         for step in steps:
             c_step = pipeline.get_step(step.id)
-
-            code = c_step.get_dependencies_code()
+            code = ""
+            code += '""" ' + c_step.r_name + '.py """\n\n'
+            code += c_step.get_dependencies_code()
             code += "\n"
             code += "class " + c_step.r_name +"(Step):\n"
+            code += '\t""" ' + c_step.r_name + ' """\n'
             code += "\tdef __init__(self, **inputs):\n"
             code += "\t\tsuper().__init__(**inputs)\n"
             code += "\t\tself.orchestrator = Orchestrator()\n"
@@ -41,7 +43,7 @@ class CodeGenerator:
             for j in c_step.get_output_code().split("\n"):
                 code += "\t\t" + j + "\n"
 
-            code += "\n\t\tself.finishExecution()"
+            code += "\t\tself.finish_execution()"
 
             self.modules[c_step.r_name] = code
             this_step_node = pipeline.get_node(step.id)
