@@ -43,7 +43,7 @@ class CodeGenerator:
             for j in c_step.get_output_code().split("\n"):
                 code += "\t\t" + j + "\n"
 
-            code += "\t\tself.finish_execution()"
+            code += "\t\tself._finish_execution()"
 
             self.modules[c_step.r_name] = code
             this_step_node = pipeline.get_node(step.id)
