@@ -122,4 +122,4 @@ if __name__ == '__main__':
     if execution_mode == "prod":
         serve(app, host = HOST, port = PORT )
     else:
-        app.run(host = HOST, port = PORT, debug = True)
+        app.run(host = HOST, port = PORT, debug = False)
