@@ -47,8 +47,10 @@ class Step:
                 source_node = node
                 break
         # add dependency
-        target_node.add_dependency(target_node, target_port, source_node, source_port)
-        source_node.add_source(source_port, target_node, target_port)
+        if target_node is not None:
+            target_node.add_dependency(target_node, target_port, source_node, source_port)
+        if source_node is not None:
+            source_node.add_source(source_port, target_node, target_port)
     def set_data(self, data):
         """
         Sets the data for the current step.
