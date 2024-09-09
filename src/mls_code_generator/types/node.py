@@ -116,13 +116,17 @@ class Node:
                 final_code += "\t" + param + " = [\n"
                 for value in param_list[:-1]:
                     final_code += "\t\t'" + str(value) + "',\n"
-                final_code += "\t\t'" + str(param_list[-1]) + "'\n\t],\n"
+                if len(param_list) > 0:
+                    final_code += "\t\t'" + str(param_list[-1]) + "'\n\t],\n"
+                else:
+                    final_code += "\t],\n"
             elif (self.get_param_type(param) == "map"):
                 param_map = self.get_param(param)
                 final_code += "\t" + param + " = {\n"
                 for sub_map in param_map[:-1]:
                     final_code += "\t\t'" + str(sub_map['key']) + "': '" + str(sub_map['value']) + "',\n"
-                final_code += "\t\t'" + str(param_map[-1]['key']) + "': '" + str(param_map[-1]['value']) + "'\n"
+                if len(param_map) > 0:
+                    final_code += "\t\t'" + str(param_map[-1]['key']) + "': '" + str(param_map[-1]['value']) + "'\n"
                 final_code += "\t},\n"
             else:
                 raise ValueError("Unknown param type: " + self.get_param_type(param))
