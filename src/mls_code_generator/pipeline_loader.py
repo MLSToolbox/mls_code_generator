@@ -39,6 +39,7 @@ class PipelineLoader:
                     class_node = Node()
                 else:
                     class_node = available_nodes.get_node(node['nodeName']).get_copy()
+                
                 class_node.set_data(node)
                 current_step.add_node(class_node)
                 all_nodes[class_node.id] = class_node
@@ -72,9 +73,18 @@ class PipelineLoader:
             source_output = connection['sourceOutput']
             target_input = connection['targetInput']
             source_step = all_steps[source]
+            source_output_node = source_step.get_output_node(source_output)
             target_step = all_steps[target]
-            target_step.set_input_origin(target_input, source_step.get_output(source_output))
+            target_step.set_input_origin(target_input, source_output_node, source_step)
 
+        
+        ## Inject inputs:
+        for current_step in all_steps.values():
+            for node in current_step.nodes:
+                if node.node_name == 'Input':
+                    continue
+                else:
+                    node.variable_name = node.node_name.replace(" ", "_").lower()
         ## Add parent to each node
         for step in all_steps.values():
             for node in step.nodes:

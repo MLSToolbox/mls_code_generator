@@ -8,6 +8,7 @@ class Step:
         self.name = ""
         self.r_name = ""
         self.outs = []
+        self.variable_name = ""
 
     def add_node(self, node : Node) -> None:
         """
@@ -63,7 +64,8 @@ class Step:
         """
         self.data = data
         self.name = data['params']['Stage name']['value'].replace("-"," ")
-        self.r_name = "".join([i.capitalize() for i in self.name.split(" ")])
+        self.r_name = "".join([i.lower()[0] for i in self.name.split(" ")])
+        self.variable_name = self.r_name
         self.name = self.name.lower()
         self.name = self.name.replace(' ', '_')
     def generate_code(self):
@@ -93,10 +95,7 @@ class Step:
                     node_count[node.node_name] = 1
                 else:
                     node_count[node.node_name] += 1
-                variable_name = node.node_name.replace(" ", "_").lower()
-                if node_count[node.node_name] > 1:
-                    variable_name += "_" + str(node_count[node.node_name])
-                node.variable_name = variable_name
+                variable_name = node.variable_name
                 if node.node_name in ['Input', 'Output']:
                     copy_nodes.remove(node)
                     for p in node.sources:
@@ -104,7 +103,15 @@ class Step:
                             target.past_dependency(target, target_port)
                     continue
                 code += node.generate_code()
-                code += "self.orchestrator.add('" + variable_name + "', " + variable_name + ")\n"
+                code += self.r_name + ".add_step(\n\t"
+
+                code += variable_name 
+                if len(node.dependencies) > 0:
+                    code += ",\n"
+                    for port_code in node.get_dependencies_code():
+                        code += "\t" + port_code + ",\n"
+                    code = code[:-2]
+                code += "\n)\n"
                 node_dependencies.append(variable_name)
                 code += "\n"
                 copy_nodes.remove(node)
@@ -113,6 +120,26 @@ class Step:
                         target.past_dependency(target, target_port)
                 break
         return code
+    
+    def generate_main_code(self):
+        code = ""
+        copy_nodes = self.nodes.copy()
+        step_dependencies = set()
+        for node in copy_nodes:
+            if node.node_name == 'Input':
+                if len(node.dependencies) > 0:
+                    step_dependencies.add(node.dependencies[0].name)
+        code += self.name + " = create_" + self.name + "("
+        if len(step_dependencies) > 0:
+            code += "\n"
+        for dep in step_dependencies:
+            code += "\t" + dep + ",\n"
+        if len(step_dependencies) > 0:
+            code = code[:-2]
+            code += "\n"
+        code += ")\n"
+        return code
+
     def get_dependencies_code(self):
         """
         Generates the import statements for the dependencies of the current step.
@@ -142,8 +169,7 @@ class Step:
         code = ""
         if "orchestration" not in dependencies:
             dependencies["orchestration"] = set()
-        dependencies["orchestration"].add("Step")
-        dependencies["orchestration"].add("Orchestrator")
+        dependencies["orchestration"].add("Stage")
         for dep, val in dependencies.items():
             code += "from mls_lib." + dep + " import " + ", ".join(val) + "\n"
         return code
@@ -166,19 +192,11 @@ class Step:
             if node.node_name == 'Output':
                 if len(node.dependencies) > 0:
                     dep, port, _, _ = node.dependencies[0]
-                    if dep.node_name == 'Input':
-                        dep_tag = dep.get_param('key')
-                        dep_tag.replace(' ', '_')
-                        code += dep_tag + ', ' + dep_tag + "_port = self._get_input_step('"
-                        code += dep.get_param('key') + "')\n"
-                        code += "self._set_output('" + node.get_param('key') + "', "
-                        code += dep_tag + ".get_output(" + dep_tag + "_port))\n"
-                    else:
-                        code += "self._set_output('" + node.get_param('key') + "',\n"
-                        code += "\tself.orchestrator.get_step_output('" + \
-                            dep.variable_name + "', '" + port + "'))\n"
+                    code += self.r_name + ".add_output('" + node.get_param('key') + "', "
+                    code += "(" + \
+                        dep.variable_name + ", '" + port + "'))\n"
         return code
-    def set_input_origin(self, target, origin):
+    def set_input_origin(self, target, origin, origin_step):
         """
         Sets the origin of an input node in the step.
 
@@ -192,6 +210,23 @@ class Step:
         for node in self.nodes:
             if (node.node_name == 'Input') and (node.params["key"]["value"] == target):
                 node.params = {
-                    "key" : node.params["key"]
+                    "key" : origin.params["key"]
                 }
+                node.dependencies.append(origin_step)
+                node.variable_name = origin_step.name
                 break
+        
+    def get_node(self, note_id):
+        for node in self.nodes:
+            if node.node_id == note_id:
+                return node
+        return None
+    
+    def get_output_node(self, key):
+        for node in self.nodes:
+            if node.node_name != "Output":
+                continue
+            if node.params['key']['value'] == key:
+                return node
+        return None
+

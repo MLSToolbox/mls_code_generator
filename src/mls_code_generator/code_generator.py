@@ -23,33 +23,35 @@ class CodeGenerator:
         steps = root.nodes
 
         for step in steps:
+            this_step_node = pipeline.get_node(step.id)
+            steps_name_i_depend_on = set()
+            for source in this_step_node.dependencies:
+                dep_step = pipeline.get_step(source[0].id)
+                steps_name_i_depend_on.add(dep_step.name)
+
             c_step = pipeline.get_step(step.id)
+
             code = ""
-            code += '""" ' + c_step.r_name + '.py """\n\n'
+            code += '""" ' + c_step.name + '.py """\n\n'
             code += c_step.get_dependencies_code()
             code += "\n"
-            code += "class " + c_step.r_name +"(Step):\n"
-            code += '\t""" ' + c_step.r_name + ' """\n'
-            code += "\tdef __init__(self, **inputs):\n"
-            code += "\t\tsuper().__init__(**inputs)\n"
-            code += "\t\tself.orchestrator = Orchestrator()\n"
+            code += "def create_" + c_step.name +"("
+            for step in steps_name_i_depend_on:
+                code += step + " : Stage, "
+            if len(steps_name_i_depend_on) > 0:
+                code = code[:-2]
+            code += "):\n"
+            code += "\t" + c_step.r_name + " =  Stage()\n\n"
 
-            for j in c_step.generate_code().split("\n"):
-                code += "\t\t" + j + "\n"
-
-            code += "\tdef execute(self):\n"
-            code += "\t\tself.orchestrator.execute()\n"
-
+            for j in c_step.generate_code().split("\n")[:-1]:
+                code += "\t" + j + "\n"
+            
             for j in c_step.get_output_code().split("\n"):
-                code += "\t\t" + j + "\n"
+                code += "\t" + j + "\n"
+            
+            code += "\treturn " + c_step.r_name + "\n\n"
 
-            code += "\t\tself._finish_execution()"
-
-            self.modules[c_step.r_name] = code
-            this_step_node = pipeline.get_node(step.id)
-            steps_id_i_depend_on = set()
-            for source in this_step_node.dependencies:
-                steps_id_i_depend_on.add(source[0].id)
+            self.modules[c_step.name] = code
 
     def __generate_main_code(self, pipeline):
         """
@@ -72,7 +74,7 @@ class CodeGenerator:
 
         for step in steps:
             c_step = pipeline.get_step(step.id)
-            code += "from " + c_step.r_name + " import " + c_step.r_name + "\n"
+            code += "from " + c_step.name + " import create_" + c_step.name + "\n"
 
         code += "\n"
         code += "def main():\n"
@@ -82,15 +84,12 @@ class CodeGenerator:
         node_dependencies = []
         while len(copy_nodes) > 0:
             for node in copy_nodes:
-                c_step = pipeline.get_step(node.id)
                 if not node.is_ready():
                     continue
+                c_step = pipeline.get_step(node.id)
                 variable_name = c_step.name
-                node.variable_name = variable_name
-                node.origin_label = c_step.r_name
-                node.params = {}
-                code += "\t" + "\n\t".join(node.generate_code().split("\n"))
-                code += "root.add(" + "'" + variable_name + "', " + variable_name + ")\n"
+                code += "\t" + "\n\t".join(c_step.generate_main_code().split("\n"))
+                code += "root.add(" + variable_name + ")\n"
                 node_dependencies.append(variable_name)
                 code += "\n"
                 copy_nodes.remove(node)

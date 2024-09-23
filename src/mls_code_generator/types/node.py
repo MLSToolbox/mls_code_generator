@@ -1,4 +1,5 @@
 """ Node: Component that represents a node in a pipeline. """
+from typing import final
 from . pipeline import Pipeline
 
 
@@ -19,6 +20,7 @@ class Node:
         self.origin_label = ""
         self.module_dependencies = {}
         self.variable_name = ""
+
     def set_data(self, data : dict):
         self.id = data['id']
         self.data = data
@@ -99,7 +101,9 @@ class Node:
             description = self.get_param("description")
             if description is not None and len(description) > 0:
                 final_code += "# " + str(self.get_param("description")) + "\n"
-        final_code += self.variable_name + " = " + self.origin_label + "(\n"
+        final_code += self.variable_name + " = " + self.origin_label + "("
+        if self.get_param_count() > 0:
+            final_code += "\n"
         for param in self.params:
             if self.get_param_type(param) == "description":
                 continue
@@ -130,15 +134,32 @@ class Node:
                 final_code += "\t},\n"
             else:
                 raise ValueError("Unknown param type: " + self.get_param_type(param))
+        if self.get_param_count() > 0:
+            final_code = final_code[:-2]
+            final_code += "\n"
+        final_code += ")\n"
+        return final_code
+    
+    def get_dependencies_code(self):
+        code_parts = []
         for dependency in self.dependencies:
             inp, inp_port, _, me_port = dependency
             if inp.node_name == "Input":
-                final_code += "\t" + me_port + " = self._get_input_step('" + inp.get_param('key')+"'),\n"
-            else:
-                final_code += "\t" + me_port + " = (" + inp.variable_name + \
-                            ", '" + inp_port + "'),\n"
-        final_code += ")\n"
-        return final_code
+                print("Input: ", inp)
+                inp_port = inp.get_param('key')
+            code = me_port + " = (" + inp.variable_name + ", '" + inp_port + "')"
+            code_parts.append(code)
+        return code_parts
+    
+    def get_param_count(self):
+        count = 0
+        for param in self.params:
+            if (self.get_param_type(param) in self.__get_available_param_types()):
+                count += 1
+        return count
+
+    def __get_available_param_types(self):
+        return ["string", "number", "boolean", "list", "map", "option", "option_of_options"]
     
     def port_is_multiple(self, port):
         if port in self.sources:
