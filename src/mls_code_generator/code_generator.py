@@ -69,7 +69,7 @@ class CodeGenerator:
         """
         root = pipeline.get_step('root')
         steps = root.nodes
-        code = "from mls_lib.orchestration import Orchestrator\n"
+        code = "from mls_lib.orchestration import Pipeline\n"
 
 
         for step in steps:
@@ -78,7 +78,7 @@ class CodeGenerator:
 
         code += "\n"
         code += "def main():\n"
-        code += "\troot = Orchestrator()\n"
+        code += "\troot = Pipeline()\n"
 
         copy_nodes = steps.copy()
         node_dependencies = []

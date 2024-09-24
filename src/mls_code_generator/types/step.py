@@ -91,17 +91,20 @@ class Step:
                     continue
                 if not node.is_ready():
                     continue
-                if node_count.get(node.node_name) is None:
-                    node_count[node.node_name] = 1
-                else:
-                    node_count[node.node_name] += 1
-                variable_name = node.variable_name
                 if node.node_name in ['Input', 'Output']:
                     copy_nodes.remove(node)
                     for p in node.sources:
                         for target, target_port in node.sources[p]:
                             target.past_dependency(target, target_port)
                     continue
+                if node_count.get(node.node_name) is None:
+                    node_count[node.node_name] = 1
+                else:
+                    node_count[node.node_name] += 1
+                if node_count[node.node_name] > 1:
+                    variable_name += "_" + str(node_count[node.node_name])
+                    node.variable_name = variable_name
+                variable_name = node.variable_name
                 code += node.generate_code()
                 code += self.r_name + ".add_step(\n\t"
 
