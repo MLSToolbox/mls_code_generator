@@ -30,4 +30,4 @@ class CodePacker():
         # file.write("")
         # file.close()
 
-        ## shutil.copytree(mls_path, write_path+'/mls_lib') FIXME : ONLY FOR DEBUG!
+        shutil.copytree(mls_path, write_path+'/mls_lib')
