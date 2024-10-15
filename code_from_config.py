@@ -1,7 +1,10 @@
 """ Local code generator """
 
 import json
-from src.mls_code_generator import ConfigLoader, PipelineLoader, CodeGenerator, CodePacker
+from src.mls_code_generator.configuration_loader import ConfigLoader
+from src.mls_code_generator.code_generator import  CodeGenerator
+from src.mls_code_generator.pipeline_loader import PipelineLoader
+from src.mls_code_generator.code_packer import CodePacker
 from src.mls_code_generator.types import Pipeline
 
 EDITOR_PATH = 'fixed_editor.json'
@@ -31,6 +34,7 @@ def main():
     code_packer = CodePacker()
     code_packer.generate_package(
         code = code_generator.get_modules(),
+        params = code_generator.get_params(),
         write_path = "./output/src/",
         mls_path = "./src/mls_lib/mls_lib/"
     )

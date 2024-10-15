@@ -41,6 +41,7 @@ class PipelineLoader:
                     class_node = available_nodes.get_node(node['nodeName']).get_copy()
                 
                 class_node.set_data(node)
+                class_node.set_parent_step(current_step)
                 current_step.add_node(class_node)
                 all_nodes[class_node.id] = class_node
 
@@ -88,6 +89,6 @@ class PipelineLoader:
         ## Add parent to each node
         for step in all_steps.values():
             for node in step.nodes:
-                node.parent = step
+                node.set_parent(step)
         parent.add_steps(all_steps)
         parent.add_nodes(all_nodes)

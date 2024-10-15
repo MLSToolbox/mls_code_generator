@@ -1,11 +1,13 @@
 """ CodePacker: Component that writes the code. """
+from os import write
 import shutil
+import yaml
 class CodePacker():
     """ CodePacker: Component that writes the code. """
     def __init__(self) -> None:
         pass
 
-    def generate_package(self, code, write_path, mls_path):
+    def generate_package(self, code, params, write_path, mls_path):
         """
         Generates a package from the provided code and writes it to the specified path.
         
@@ -25,6 +27,12 @@ class CodePacker():
             module_code.replace("\t", "    ")
             file.write(module_code)
             file.close()
+        
+        params_file_path = write_path + "params.yaml"
+
+        file = open(params_file_path, 'w', encoding='utf-8')
+        yaml.dump(params, file)
+        file.close()
 
         # file = open(write_path + "__init__.py", 'w', encoding='utf-8')
         # file.write("")

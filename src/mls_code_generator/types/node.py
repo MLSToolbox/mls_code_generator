@@ -1,7 +1,8 @@
 """ Node: Component that represents a node in a pipeline. """
+from operator import is_
 from typing import final
 from . pipeline import Pipeline
-
+from . step import Step
 
 class Node:
     """ Node: Component that represents a node in a pipeline. """
@@ -12,6 +13,7 @@ class Node:
         self.sources = {}
         self.node_name = None
         self.parent = Pipeline()
+        self.parent_step = Step("0")
         self.ready = []
         self.params = {}
         self.inputs = []
@@ -34,6 +36,12 @@ class Node:
             except KeyError:
                 self.params[param]['value'] = ""
             self.params[param]['type'] = data['params'][param]['type']
+            if self.node_name not in ["Input", "Output", "Step"]:
+                self.params[param]["isParam"] = data['params'][param]["isParam"]
+                self.params[param]["param_label"] = data['params'][param]["param_label"]
+            else:
+                self.params[param]["isParam"] = "custom"
+                self.params[param]["param_label"] = ""
         self.origin_label = ""
         if "custom" in self.origin:
             self.origin_label = self.origin["custom"]
@@ -42,6 +50,9 @@ class Node:
 
     def set_parent(self, parent : Pipeline):
         self.parent = parent
+    
+    def set_parent_step(self, parent_step : Step):
+        self.parent_step = parent_step
 
     def add_dependency(self, dep : str , port : str, src : str, src_port : str) -> None:
         self.dependencies.append((src, src_port, dep, port))
@@ -60,38 +71,30 @@ class Node:
         for i, dep in enumerate(self.dependencies):
             if dep[2] == src and dep[3] == src_port:
                 self.ready[i] = True
-                return None
-            
+                return None            
     def _get_input(self, side):
         for dep in self.dependencies:
             if dep[3] == side:
                 return dep[0], dep[1]
-        return [None, None]
-            
+        return [None, None]      
     def get_output(self, port):
         if port not in self.outputs:
             return "NO OUTPUT FOUND: " + port + " in " + self.node_name
         
         return port
-    
     def get_param(self, label):
         if label not in self.params:
             return "NO PARAM FOUND: " + label + " in " + self.node_name
 
         return self.params[label]['value']
-    
     def get_param_type(self, label):
         if label not in self.params:
             return "NO PARAM FOUND: " + label + " in " + self.node_name
-
         return self.params[label]['type']
-
     def __repr__(self) -> str:
         return self.node_name
-
     def __str__(self) -> str:
-        return self.node_name
-    
+        return self.node_name  
     def generate_code(self):
         if self.origin is None:
             return "# " + self.node_name + " not implemented yet\n"
@@ -105,6 +108,9 @@ class Node:
         if self.get_param_count() > 0:
             final_code += "\n"
         for param in self.params:
+            if self.is_param_label(param):
+                final_code += "\t" + param + " =  ParamLoader.load('" + self.get_param_label(param) + "'),\n"
+                continue
             if self.get_param_type(param) == "description":
                 continue
             if ( "parameter" in self.origin ) and ( param == self.origin["parameter"] ):
@@ -145,12 +151,14 @@ class Node:
         for dependency in self.dependencies:
             inp, inp_port, _, me_port = dependency
             if inp.node_name == "Input":
-                print("Input: ", inp)
                 inp_port = inp.get_param('key')
             code = me_port + " = (" + inp.variable_name + ", '" + inp_port + "')"
             code_parts.append(code)
         return code_parts
-    
+    def is_param_label(self, param):
+        return self.params[param]["isParam"] != "custom"
+    def get_param_label(self, param):
+        return ".".join([self.parent_step.name,self.params[param]["param_label"]])
     def get_param_count(self):
         count = 0
         for param in self.params:
@@ -183,13 +191,31 @@ class Node:
                     final_dependencies[dep].add(mid_dependencies["value"])
                 elif dep_origin == "parameter":
                     final_dependencies[dep].add(self.get_param(mid_dependencies["value"]))
+        for param in self.params:
+            if self.is_param_label(param):
+                if "orchestration" not in final_dependencies:
+                    final_dependencies["orchestration"] = set()
+                final_dependencies["orchestration"].add("ParamLoader")
         return final_dependencies
 
-    def get_parameter(self, node_id):
-        if self.parent is None:
-            return "'NONE'"
-        parameter_node = self.parent.get_node(node_id)
-        if parameter_node is None:
-            return "'NONE'"
-
-        return parameter_node.get_param("description")
+    def get_label_params(self) -> list[dict]:
+        result = []
+        for param in self.params:
+            if self.is_param_label(param):
+                param_value = None
+                param_type = self.get_param_type(param)
+                if param_type in ["string", "option", "option_of_options"]:
+                    param_value = self.get_param(param)
+                elif param_type == "number":
+                    param_value = float(self.get_param(param))
+                elif param_type == "boolean":
+                    param_value = bool(self.get_param(param).lower())
+                elif param_type == "list":
+                    param_value = self.get_param(param)
+                elif param_type == "map":
+                    param_value = {}
+                    for sub_map in self.get_param(param):
+                        param_value[sub_map['key']] = sub_map['value']
+                result.append({self.params[param]["param_label"] : param_value})
+        return result
+    

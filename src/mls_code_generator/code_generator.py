@@ -1,7 +1,6 @@
 """ CodeGenerator: Component that generates code. """
 
 from copy import deepcopy
-
 class CodeGenerator:
     """ CodeGenerator: Component that generates code. """
     def __init__(self):
@@ -103,6 +102,35 @@ class CodeGenerator:
 
         self.modules["main"] = code
 
+    def __get_params_file(self, pipeline):
+        """
+        Generates the code for the parameters file.
+
+        This function takes a pipeline as input, 
+        and generates the code for the parameters file.
+
+        Parameters:
+            pipeline (Pipeline): The pipeline for which the parameters file is to be generated.
+
+        Returns:
+            None
+        """
+        root = pipeline.get_step('root')
+        steps = root.nodes
+        
+        self.params = {}
+
+
+        for step in steps:
+            
+            c_step = pipeline.get_step(step.id)
+            node_params = []
+            for node in c_step.nodes:
+                node_params.extend(node.get_label_params())
+            if len(node_params) > 0:
+                self.params[c_step.name] = node_params
+            
+        
     def generate_code(self, pipeline):
         """
         Generates code for a given pipeline.
@@ -118,6 +146,7 @@ class CodeGenerator:
         """
         self.__generate_stage_code(pipeline)
         self.__generate_main_code(pipeline)
+        param_file = self.__get_params_file(pipeline)
     def get_modules(self):
         """
         Returns a deep copy of the modules dictionary.
@@ -129,3 +158,14 @@ class CodeGenerator:
             dict: A deep copy of the modules dictionary.
         """
         return deepcopy(self.modules)
+    def get_params(self):
+        """
+        Returns a deep copy of the params dictionary.
+        
+        Parameters:
+            None
+        
+        Returns:
+            dict: A deep copy of the params dictionary.
+        """
+        return deepcopy(self.params)

@@ -1,4 +1,4 @@
-from . node import Node
+
 
 class Step:
     def __init__(self, id : str) -> None:
@@ -11,7 +11,7 @@ class Step:
         self.outs = []
         self.variable_name = ""
 
-    def add_node(self, node : Node) -> None:
+    def add_node(self, node) -> None:
         """
         Adds a new node to the step's collection of nodes.
 
