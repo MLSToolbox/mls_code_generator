@@ -6,7 +6,7 @@ class CodeGenerator:
     """ CodeGenerator: Component that generates code. """
     def __init__(self):
         self.modules = {}
-    def __generate_step_code(self, pipeline):
+    def __generate_stage_code(self, pipeline):
         """
         Generates code for a step in a pipeline.
 
@@ -41,7 +41,7 @@ class CodeGenerator:
             if len(steps_name_i_depend_on) > 0:
                 code = code[:-2]
             code += "):\n"
-            code += "\t" + c_step.r_name + " =  Stage()\n\n"
+            code += "\t" + c_step.r_name + " =  Stage('" + c_step.original_name +  "')\n\n"
 
             for j in c_step.generate_code().split("\n")[:-1]:
                 code += "\t" + j + "\n"
@@ -116,7 +116,7 @@ class CodeGenerator:
         Returns:
             None
         """
-        self.__generate_step_code(pipeline)
+        self.__generate_stage_code(pipeline)
         self.__generate_main_code(pipeline)
     def get_modules(self):
         """

@@ -5,6 +5,7 @@ class Step:
         self.id = id
         self.nodes = []
         self.data = ""
+        self.original_name = ""
         self.name = ""
         self.r_name = ""
         self.outs = []
@@ -64,6 +65,7 @@ class Step:
         """
         self.data = data
         self.name = data['params']['Stage name']['value'].replace("-"," ")
+        self.original_name = data['params']['Stage name']['value']
         self.r_name = "".join([i.lower()[0] for i in self.name.split(" ")])
         self.variable_name = self.r_name
         self.name = self.name.lower()
