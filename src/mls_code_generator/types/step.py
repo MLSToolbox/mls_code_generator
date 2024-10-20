@@ -108,7 +108,7 @@ class Step:
                     node.variable_name = variable_name
                 variable_name = node.variable_name
                 code += node.generate_code()
-                code += self.r_name + ".add_step(\n\t"
+                code += self.r_name + ".add_task(\n\t"
 
                 code += variable_name 
                 if len(node.dependencies) > 0:

@@ -51,8 +51,10 @@ def create_app():
     code_packer = CodePacker()
     code_packer.generate_package(
         code = code_generator.get_modules(),
+        params = code_generator.get_params(),
         write_path = path,
-        mls_path = "./mls_lib/mls_lib")
+        mls_path = "./mls_lib/mls_lib/"
+    )
     shutil.make_archive(path_head, 'zip', path_head)
 
     file = open(path_head+'.zip', 'rb')
