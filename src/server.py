@@ -8,7 +8,10 @@ from flask import Flask, json, request
 from flask_cors import cross_origin, CORS
 from waitress import serve
 
-from mls_code_generator import ConfigLoader, PipelineLoader, CodeGenerator, CodePacker
+from mls_code_generator.configuration_loader import ConfigLoader
+from mls_code_generator.code_generator import CodeGenerator
+from mls_code_generator.code_packer import CodePacker
+from mls_code_generator.pipeline_loader import PipelineLoader
 from mls_code_generator.types import Pipeline
 from mls_code_generator.utils import fix_editor
 
