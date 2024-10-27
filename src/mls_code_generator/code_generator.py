@@ -1,5 +1,6 @@
 """ CodeGenerator: Component that generates code. """
 
+from cProfile import label
 from copy import deepcopy
 class CodeGenerator:
     """ CodeGenerator: Component that generates code. """
@@ -124,10 +125,12 @@ class CodeGenerator:
         for step in steps:
             
             c_step = pipeline.get_step(step.id)
-            node_params = []
+            node_params = {}
             for node in c_step.nodes:
-                node_params.extend(node.get_label_params())
-            if len(node_params) > 0:
+                label_params = node.get_label_params()
+                for j in label_params:
+                    node_params.update(j)
+            if len(node_params.keys()) > 0:
                 self.params[c_step.name] = node_params
             
         
