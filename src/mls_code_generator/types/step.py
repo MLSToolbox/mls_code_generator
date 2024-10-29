@@ -64,6 +64,8 @@ class Step:
             None
         """
         self.data = data
+        if data['params']['link']['value'] != "":
+            data['params']['Stage name']['value'] = data['params']['Stage name']['value'][:-1]
         self.name = data['params']['Stage name']['value'].replace("-"," ")
         self.original_name = data['params']['Stage name']['value']
         self.r_name = "".join([i.lower()[0] for i in self.name.split(" ")])
@@ -129,12 +131,12 @@ class Step:
     def generate_main_code(self):
         code = ""
         copy_nodes = self.nodes.copy()
-        step_dependencies = set()
+        step_dependencies = []
         for node in copy_nodes:
             if node.node_name == 'Input':
                 if len(node.dependencies) > 0:
-                    step_dependencies.add(node.dependencies[0].name)
-        code += self.name + " = create_" + self.name + "("
+                    step_dependencies.append(node.dependencies[0].name)
+        code += "("
         if len(step_dependencies) > 0:
             code += "\n"
         for dep in step_dependencies:

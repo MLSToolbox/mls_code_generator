@@ -2,6 +2,8 @@
 
 from cProfile import label
 from copy import deepcopy
+
+from outcome import Value
 class CodeGenerator:
     """ CodeGenerator: Component that generates code. """
     def __init__(self):
@@ -23,11 +25,21 @@ class CodeGenerator:
         steps = root.nodes
 
         for step in steps:
+            if step.params["link"]["value"] != "":
+                continue
             this_step_node = pipeline.get_node(step.id)
             steps_name_i_depend_on = set()
+            count_steps = {}
             for source in this_step_node.dependencies:
-                dep_step = pipeline.get_step(source[0].id)
-                steps_name_i_depend_on.add(dep_step.name)
+                dep_name = source[-1]
+                if dep_name not in count_steps:
+                    count_steps[dep_name] = 1
+                else:
+                    count_steps[dep_name] += 1
+                if count_steps[dep_name] > 1:
+                    steps_name_i_depend_on.add(dep_name + "_" + str(count_steps[dep_name]))
+                else:
+                    steps_name_i_depend_on.add(dep_name)
 
             c_step = pipeline.get_step(step.id)
 
@@ -74,6 +86,8 @@ class CodeGenerator:
 
         for step in steps:
             c_step = pipeline.get_step(step.id)
+            if step.params["link"]["value"] != "":
+                continue
             code += "from " + c_step.name + " import create_" + c_step.name + "\n"
 
         code += "\n"
@@ -82,13 +96,30 @@ class CodeGenerator:
 
         copy_nodes = steps.copy()
         node_dependencies = []
+        appearence_count = {}
         while len(copy_nodes) > 0:
             for node in copy_nodes:
                 if not node.is_ready():
                     continue
-                c_step = pipeline.get_step(node.id)
+                try:
+                    c_step = pipeline.get_step(node.id)
+                except ValueError:
+                    the_step_i_want = ""
+                    for temp in steps:
+                        if temp.id == node.id:
+                            the_step_i_want = temp.params["link"]["value"]
+                    c_step = pipeline.get_step(the_step_i_want)
+                original_c_step_name = c_step.name
+                if c_step.name in appearence_count:
+                    appearence_count[c_step.name] += 1
+                else:
+                    appearence_count[c_step.name] = 1
+                if appearence_count[c_step.name] > 1:
+                    c_step.name = c_step.name + "_" + str(appearence_count[c_step.name])
+                
                 variable_name = c_step.name
-                code += "\t" + "\n\t".join(c_step.generate_main_code().split("\n"))
+                
+                code += "\t" + variable_name + " = create_" + original_c_step_name + "\n\t".join(c_step.generate_main_code().split("\n"))
                 code += "root.add(" + variable_name + ")\n"
                 node_dependencies.append(variable_name)
                 code += "\n"
@@ -123,16 +154,17 @@ class CodeGenerator:
 
 
         for step in steps:
-            
-            c_step = pipeline.get_step(step.id)
-            node_params = {}
-            for node in c_step.nodes:
-                label_params = node.get_label_params()
-                for j in label_params:
-                    node_params.update(j)
-            if len(node_params.keys()) > 0:
-                self.params[c_step.name] = node_params
-            
+            try:
+                c_step = pipeline.get_step(step.id)
+                node_params = {}
+                for node in c_step.nodes:
+                    label_params = node.get_label_params()
+                    for j in label_params:
+                        node_params.update(j)
+                if len(node_params.keys()) > 0:
+                    self.params[c_step.name] = node_params
+            except ValueError:
+                continue
         
     def generate_code(self, pipeline):
         """

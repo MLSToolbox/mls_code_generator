@@ -156,7 +156,9 @@ class Node:
             code_parts.append(code)
         return code_parts
     def is_param_label(self, param):
-        return self.params[param]["isParam"] != "custom"
+        if "isParam" in self.params[param] and self.params[param]["isParam"] != "custom":
+            return True
+        return False
     def get_param_label(self, param):
         return ".".join([self.parent_step.name,self.params[param]["param_label"]])
     def get_param_count(self):
