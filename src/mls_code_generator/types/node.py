@@ -152,7 +152,10 @@ class Node:
             inp, inp_port, _, me_port = dependency
             if inp.node_name == "Input":
                 inp_port = inp.get_param('key')
-            code = me_port + " = (" + inp.variable_name + ", '" + inp_port + "')"
+            if inp.variable_name == "":
+                code = me_port + " = None"
+            else:
+                code = me_port + " = (" + inp.variable_name + ", '" + inp_port + "')"
             code_parts.append(code)
         return code_parts
     def is_param_label(self, param):

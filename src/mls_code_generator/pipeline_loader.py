@@ -80,23 +80,23 @@ class PipelineLoader:
                 node.params = {
                     "key" : node.params["key"]
                 }
-        ## Inject Outputs into other other step inputs:
+        
+        
+        ## Add connections between steps
         for connection in content['root']['connections']:
             source = connection['source']
             target = connection['target']
             source_output = connection['sourceOutput']
             target_input = connection['targetInput']
             source_step = all_steps[source]
-            source_output_node = source_step.get_output_node(source_output)
             target_step = all_steps[target]
-            target_step.set_input_origin(target_input, source_output_node, source_step)
-
+            target_step.add_main_connection(source_step, source_output, target_input)
         
         ## Inject inputs:
         for current_step in all_steps.values():
             for node in current_step.nodes:
                 if node.node_name == 'Input':
-                    continue
+                    node.variable_name = current_step.r_name
                 else:
                     node.variable_name = node.node_name.replace(" ", "_").lower()
         

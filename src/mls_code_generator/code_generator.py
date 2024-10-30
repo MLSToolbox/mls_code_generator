@@ -47,12 +47,7 @@ class CodeGenerator:
             code += '""" ' + c_step.name + '.py """\n\n'
             code += c_step.get_dependencies_code()
             code += "\n"
-            code += "def create_" + c_step.name +"("
-            for step in steps_name_i_depend_on:
-                code += step + " : Stage, "
-            if len(steps_name_i_depend_on) > 0:
-                code = code[:-2]
-            code += "):\n"
+            code += "def create_" + c_step.name +"():\n"
             code += "\t" + c_step.r_name + " =  Stage('" + c_step.original_name +  "')\n\n"
 
             for j in c_step.generate_code().split("\n")[:-1]:
@@ -86,6 +81,7 @@ class CodeGenerator:
 
         for step in steps:
             c_step = pipeline.get_step(step.id)
+            # Linked stages do not need new modules
             if step.params["link"]["value"] != "":
                 continue
             code += "from " + c_step.name + " import create_" + c_step.name + "\n"
@@ -119,11 +115,17 @@ class CodeGenerator:
                 
                 variable_name = c_step.name
                 
-                code += "\t" + variable_name + " = create_" + original_c_step_name + "\n\t".join(c_step.generate_main_code().split("\n"))
-                code += "root.add(" + variable_name + ")\n"
+                code += "\t" + variable_name + " = create_" + original_c_step_name + "()\n"
+                code += "\troot.add_stage(" + variable_name + ", \n"
+                for dependency in c_step.dependencies:
+                    inp, inp_port, me_port = dependency
+                    code += "\t\t" + me_port + " = (" + inp.name + ", '" + inp_port + "'),\n"
+                code += "\t)\n"
                 node_dependencies.append(variable_name)
                 code += "\n"
                 copy_nodes.remove(node)
+
+                # Update next nodes so they now they can be added to the code now
                 for p in node.sources:
                     for target, target_port in node.sources[p]:
                         target.past_dependency(target, target_port)

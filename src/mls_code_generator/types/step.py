@@ -10,6 +10,7 @@ class Step:
         self.r_name = ""
         self.outs = []
         self.variable_name = ""
+        self.dependencies = []
 
     def add_node(self, node) -> None:
         """
@@ -88,25 +89,27 @@ class Step:
         copy_nodes = self.nodes.copy()
         node_count = dict()
         node_dependencies = []
+
         while(len(copy_nodes) > 0):
             for node in copy_nodes:
-                if node.node_name == 'Parameter':
-                    copy_nodes.remove(node)
-                    continue
+                # Gross exploration of the graph
                 if not node.is_ready():
                     continue
+                # Pass ready dependencies to next nodes as these ones don't need to be generated
                 if node.node_name in ['Input', 'Output']:
                     copy_nodes.remove(node)
                     for p in node.sources:
                         for target, target_port in node.sources[p]:
                             target.past_dependency(target, target_port)
                     continue
-                if node_count.get(node.node_name) is None:
-                    node_count[node.node_name] = 1
+                node_name = node.node_name
+                variable_name = node.variable_name
+                if node_count.get(node_name) is None:
+                    node_count[node_name] = 1
                 else:
-                    node_count[node.node_name] += 1
-                if node_count[node.node_name] > 1:
-                    variable_name += "_" + str(node_count[node.node_name])
+                    node_count[node_name] += 1
+                if node_count[node_name] > 1:
+                    variable_name += "_" + str(node_count[node_name])
                     node.variable_name = variable_name
                 variable_name = node.variable_name
                 code += node.generate_code()
@@ -217,10 +220,12 @@ class Step:
         for node in self.nodes:
             if (node.node_name == 'Input') and (node.params["key"]["value"] == target):
                 node.params = {
-                    "key" : origin.params["key"]
+                    "key" : {
+                        "value" : target,
+                    }
                 }
                 node.dependencies.append(origin_step)
-                node.variable_name = origin_step.name
+                node.variable_name = origin_step.r_name
                 break
         
     def get_node(self, note_id):
@@ -237,3 +242,5 @@ class Step:
                 return node
         return None
 
+    def add_main_connection(self, source, source_port, target_port):
+        self.dependencies.append((source, source_port, target_port))
