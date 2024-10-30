@@ -152,11 +152,16 @@ class Node:
             inp, inp_port, _, me_port = dependency
             if inp.node_name == "Input":
                 inp_port = inp.get_param('key')
-            code = me_port + " = (" + inp.variable_name + ", '" + inp_port + "')"
+            if inp.variable_name == "":
+                code = me_port + " = None"
+            else:
+                code = me_port + " = (" + inp.variable_name + ", '" + inp_port + "')"
             code_parts.append(code)
         return code_parts
     def is_param_label(self, param):
-        return self.params[param]["isParam"] != "custom"
+        if "isParam" in self.params[param] and self.params[param]["isParam"] != "custom":
+            return True
+        return False
     def get_param_label(self, param):
         return ".".join([self.parent_step.name,self.params[param]["param_label"]])
     def get_param_count(self):
