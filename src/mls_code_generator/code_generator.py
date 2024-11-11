@@ -1,9 +1,7 @@
 """ CodeGenerator: Component that generates code. """
 
-from cProfile import label
 from copy import deepcopy
 
-from outcome import Value
 class CodeGenerator:
     """ CodeGenerator: Component that generates code. """
     def __init__(self):
