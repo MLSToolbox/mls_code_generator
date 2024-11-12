@@ -24,7 +24,7 @@ class CodePacker():
             module_write_path = write_path + str(module) + ".py"
 
             file = open(module_write_path, 'w', encoding='utf-8')
-            module_code.replace("\t", "    ")
+            module_code = module_code.replace("\t", "    ")
             file.write(module_code)
             file.close()
         
