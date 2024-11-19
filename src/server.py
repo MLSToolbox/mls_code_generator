@@ -115,6 +115,26 @@ def get_config():
         'sockets' : socket_config
     }
 
+
+@app.route('/api/get_base_editor', methods=['GET', 'POST'])
+@cross_origin()
+def get_base_editor():
+    path_to_editors = "./mls_code_generator_config/templates/"
+    return json.load(open(path_to_editors + "base_editor.json", 'r', encoding='utf-8'))
+
+@app.route('/api/get_editor', methods=['GET', 'POST'])
+@cross_origin()
+def get_editor():
+    path_to_editors = "./mls_code_generator_config/templates/"
+    editor_name = request.args.get('editor_name')
+    return json.load(open(path_to_editors + editor_name + ".json", 'r', encoding='utf-8'))
+
+@app.route('/api/get_available_editors', methods=['GET', 'POST'])
+@cross_origin()
+def get_available_editors():
+    path_to_editors = "./mls_code_generator_config/templates/"
+    return json.load(open(path_to_editors + "available_editors.json", 'r', encoding='utf-8'))
+
 if __name__ == '__main__':
     CORS(app, supports_credentials=True, origins=['*'])
     app.config["CORS_HEADERS"] = ["Content-Type", "X-Requested-With", "X-CSRFToken"]
