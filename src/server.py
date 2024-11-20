@@ -129,9 +129,9 @@ def get_editor():
     editor_name = request.args.get('editor_name')
     return json.load(open(path_to_editors + editor_name + ".json", 'r', encoding='utf-8'))
 
-@app.route('/api/get_available_editors', methods=['GET', 'POST'])
+@app.route('/api/get_available_editor', methods=['GET', 'POST'])
 @cross_origin()
-def get_available_editors():
+def get_available_editor():
     path_to_editors = "./mls_code_generator_config/templates/"
     return json.load(open(path_to_editors + "available_editors.json", 'r', encoding='utf-8'))
 
