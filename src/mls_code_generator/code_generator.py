@@ -181,7 +181,7 @@ class CodeGenerator:
         """
         self.__generate_stage_code(pipeline)
         self.__generate_main_code(pipeline)
-        param_file = self.__get_params_file(pipeline)
+        self.__get_params_file(pipeline)
     def get_modules(self):
         """
         Returns a deep copy of the modules dictionary.

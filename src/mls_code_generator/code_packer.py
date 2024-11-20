@@ -27,7 +27,7 @@ class CodePacker():
             module_code = module_code.replace("\t", "    ")
             file.write(module_code)
             file.close()
-        
+
         params_file_path = write_path + "params.yaml"
 
         file = open(params_file_path, 'w', encoding='utf-8')
