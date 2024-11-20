@@ -126,7 +126,8 @@ def get_base_editor():
 @cross_origin()
 def get_editor():
     path_to_editors = "./mls_code_generator_config/templates/"
-    editor_path = request.args.get('editor_path')
+    editor_path = str(request.data.decode('utf-8'))
+    print(editor_path)
     return json.load(open(path_to_editors + editor_path, 'r', encoding='utf-8'))
 
 @app.route('/api/get_available_editor', methods=['GET', 'POST'])
