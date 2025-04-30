@@ -74,7 +74,9 @@ class CodeGenerator:
         """
         root = pipeline.get_step('root')
         steps = root.nodes
-        code = "from mls_lib.orchestration import Pipeline\n"
+        code  = "import warnings\n"
+        code += "warnings.filterwarnings('ignore')\n"
+        code += "from mls_lib.orchestration import Pipeline\n"
 
 
         for step in steps:
