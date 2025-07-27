@@ -6,6 +6,8 @@ class CodeGenerator:
     """ CodeGenerator: Component that generates code. """
     def __init__(self):
         self.modules = {}
+        self.params = {}
+
     def __generate_stage_code(self, pipeline):
         """
         Generates code for a step in a pipeline.
@@ -23,7 +25,8 @@ class CodeGenerator:
         steps = root.nodes
 
         for step in steps:
-            if step.params["link"]["value"] != "":
+            
+            if "link" in step.params and step.params["link"]["value"] != "":
                 continue
             this_step_node = pipeline.get_node(step.id)
             steps_name_i_depend_on = set()
@@ -82,7 +85,7 @@ class CodeGenerator:
         for step in steps:
             c_step = pipeline.get_step(step.id)
             # Linked stages do not need new modules
-            if step.params["link"]["value"] != "":
+            if "link" in step.params and step.params["link"]["value"] != "":
                 continue
             code += "from " + c_step.name + " import create_" + c_step.name + "\n"
 

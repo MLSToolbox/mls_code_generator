@@ -1,0 +1,39 @@
+label_encoder_train = LabelEncoderTrainer(
+	columns = [
+		'Item_Fat_Content',
+		'Outlet_Location_Type',
+		'Outlet_Size',
+		'Item_Type',
+		'Outlet_Type',
+		'Outlet_Identifier'
+	]
+)
+fe.add_task(
+	label_encoder_train,
+	data = (fe, 'data')
+)
+
+select_columns = ColumnSelect(
+	columns = [
+		'Item_Outlet_Sales'
+	]
+)
+fe.add_task(
+	select_columns,
+	origin_table = (label_encoder_train, 'out')
+)
+
+select_columns_2 = ColumnSelect(
+	columns = [
+		'Item_Fat_Content',
+		'Outlet_Location_Type',
+		'Outlet_Size',
+		'Item_Type',
+		'Outlet_Type'
+	]
+)
+fe.add_task(
+	select_columns_2,
+	origin_table = (label_encoder_train, 'out')
+)
+

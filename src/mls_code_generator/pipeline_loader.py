@@ -4,7 +4,6 @@ from os import link
 from .types.node import Node
 from .types.step import Step
 from .types.pipeline import Pipeline
-
 class PipelineLoader:
     """ PipelineLoader: Component that loads a pipeline. """
     def __init__(self, content, node_config) -> None:

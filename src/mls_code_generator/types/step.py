@@ -12,6 +12,21 @@ class Step:
         self.variable_name = ""
         self.dependencies = []
 
+    def __repr__(self):
+        return str({
+            "id" : self.id,
+            "nodes" : self.nodes,
+            "data" : self.data,
+            "original_name" : self.original_name,
+            "name" : self.name,
+            "r_name" : self.r_name,
+            "outs" : self.outs,
+            "dependencies" : self.dependencies,
+            "variable_name" : self.variable_name,
+        })
+    def __str__(self):
+        return str(self.__repr__())
+
     def add_node(self, node) -> None:
         """
         Adds a new node to the step's collection of nodes.
@@ -181,7 +196,7 @@ class Step:
             dependencies["orchestration"] = set()
         dependencies["orchestration"].add("Stage")
         for dep, val in dependencies.items():
-            code += "from mls_lib." + dep + " import " + ", ".join(val) + "\n"
+            code += "from mls_lib." + dep + " import " + ", ".join(sorted(val)) + "\n"
         return code
 
     def get_output(self, source):
@@ -206,39 +221,10 @@ class Step:
                     code += "(" + \
                         dep.variable_name + ", '" + port + "'))\n"
         return code
-    def set_input_origin(self, target, origin, origin_step):
-        """
-        Sets the origin of an input node in the step.
-
-        Args:
-            target (str): The key of the input node to set the origin for.
-            origin (str): The origin to set for the input node.
-
-        Returns:
-            None
-        """
-        for node in self.nodes:
-            if (node.node_name == 'Input') and (node.params["key"]["value"] == target):
-                node.params = {
-                    "key" : {
-                        "value" : target,
-                    }
-                }
-                node.dependencies.append(origin_step)
-                node.variable_name = origin_step.r_name
-                break
         
     def get_node(self, note_id):
         for node in self.nodes:
             if node.node_id == note_id:
-                return node
-        return None
-    
-    def get_output_node(self, key):
-        for node in self.nodes:
-            if node.node_name != "Output":
-                continue
-            if node.params['key']['value'] == key:
                 return node
         return None
 

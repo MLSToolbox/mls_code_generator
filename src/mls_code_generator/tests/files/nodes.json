@@ -1,0 +1,986 @@
+{
+    "nodes" :
+    [
+        {   "node" : "Input",
+            "info" : {
+                "title" : "Loads data from previous step"
+            },
+            "category" : "Step Managment",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "key", "param_type" : "description", "show" : true},
+                {"param_label" : "Socket type", "param_type" : "option", "optionId": "socket_type", "show" : false}
+            ],
+            "inputs" : [],
+            "outputs" : [
+                {
+                    "port_label" : "key",
+                    "port_type" : "Any"
+
+                }
+            ],
+            "dependencies" : {
+            },
+			"origin" : {
+				"custom" : ""
+			}
+        },
+        {   "node" : "Output",
+            "info" : {
+                "title" : "Saves data to be used in next steps"
+            }, 
+            "category" : "Step Managment",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "key", "param_type" : "description", "show" : true},
+                {"param_label" : "Socket type", "param_type" : "option", "optionId": "socket_type", "show" : false}
+            ],
+            "inputs" : [
+                {
+                    "port_label" : "key",
+                    "port_type" : "Any"
+                }
+            ],
+            "outputs" : [],
+            "dependencies" : {
+            },
+            "origin" : {
+                "custom" : ""
+            }
+        },
+        {   "node" : "Select Columns",
+            "info" : {
+                "title" : "Selects given Columns"
+            },
+            "category" : "Feature Engineering",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "columns", "param_type" : "list", "show" : false}
+            ],
+            "inputs" : [
+                {"port_label" : "origin_table", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                {"port_label" : "resulting_table", "port_type" : "DataFrame" }
+            ],
+            "dependencies" : {
+				"feature_engineering" : {
+					"origin": "custom",
+					"value": "ColumnSelect"
+				}
+			},
+			"origin" : {
+				"custom" : "ColumnSelect"
+			}
+        },
+        {   "node" : "Duplicate Column",
+            "info" : {
+                "title" : "Creates a new column that is a copy from another one"
+            },
+            "category" : "Feature Engineering",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "original_column_name", "param_type" : "string", "show" : false},
+                {"param_label" : "new_column_name", "param_type" : "string", "show" : false}
+            ],
+            "inputs" : [
+                {"port_label" : "old_table", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                {"port_label" : "new_table", "port_type" : "DataFrame" }
+            ],
+            "dependencies" : {
+                "feature_engineering" : {
+                    "origin": "custom",
+                    "value": "DuplicateColumn"
+                }
+            },
+            "origin" : {
+                "custom" : "DuplicateColumn"
+            }
+        },
+        {   "node" : "Prefix Transform",
+            "info" : {
+                "title" : "Transforms the values of a given sets of columns to the initial values of it"
+            },
+            "category" : "Feature Engineering",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "columns", "param_type" : "list", "show" : false},
+                {"param_label" : "prefix_length", "param_type" : "number", "show" : true}
+            ],
+            "inputs" : [
+                {"port_label" : "old_table", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                {"port_label" : "new_table", "port_type" : "DataFrame" }
+            ],
+            "dependencies" : {
+                "feature_engineering" : {
+                    "origin": "custom",
+                    "value": "PrefixTransform"
+                }
+            },
+            "origin" : {
+                "custom" : "PrefixTransform"
+            }
+        },
+        {   "node" : "Suffix Transform",
+            "info" : {
+                "title" : "Transforms the values of a given sets of columns to the final values of it"
+            },
+            "category" : "Feature Engineering",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "columns", "param_type" : "list", "show" : false},
+                {"param_label" : "suffix_length", "param_type" : "number", "show" : true}
+            ],
+            "inputs" : [
+                {"port_label" : "old_table", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                {"port_label" : "new_table", "port_type" : "DataFrame" }
+            ],
+            "dependencies" : {
+                "feature_engineering" : {
+                    "origin": "custom",
+                    "value": "SuffixTransform"
+                }
+            },
+            "origin" : {
+                "custom" : "SuffixTransform"
+            }
+        },
+        {   "node" : "Split Dataframe",
+            "info" : {
+                "title" : "Separates the dataframe into two datasets given the columns of interest"
+            },
+            "category" : "Feature Engineering",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "columns", "param_type" : "list", "show" : false}
+            ],
+            "inputs" : [
+                {"port_label" : "table", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                {"port_label" : "selected_table", "port_type" : "DataFrame" },
+                {"port_label" : "unselected_table", "port_type" : "DataFrame" }
+            ],
+            "dependencies" : {
+                "feature_engineering" : {
+                    "origin": "custom",
+                    "value": "SplitDataframe"
+                }
+            },
+            "origin" : {
+                "custom" : "SplitDataframe"
+            }
+        },
+        {   "node" : "Column Concatenate",
+            "info" : {
+                "title" : "Component that concatenates two tables."
+            },
+            "category" : "Feature Engineering",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true}
+            ],
+            "inputs" : [
+                {"port_label" : "left_table", "port_type" : "DataFrame" },
+                {"port_label" : "right_table", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                {"port_label" : "selected_table", "port_type" : "DataFrame" }
+            ],
+            "dependencies" : {
+                "feature_engineering" : {
+                    "origin": "custom",
+                    "value": "ColumnConcat"
+                }
+            },
+            "origin" : {
+                "custom" : "ColumnConcat"
+            }
+        },
+        {   "node" : "Label Encoder train",
+            "info" : {
+                "title" : "Encodes labels of a given set of columns"
+            },
+            "category" : "Feature Engineering",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "columns", "param_type" : "list", "show" : false}
+            ],
+            "inputs" : [
+                {"port_label" : "data", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                {"port_label" : "out", "port_type" : "DataFrame" },
+                {"port_label" : "encoder", "port_type" : "Encoder" }
+            ],
+            "dependencies" : {
+                "feature_engineering.encoder_training" : {
+                    "origin": "custom",
+                    "value": "LabelEncoderTrainer"
+                }
+            },
+            "origin" : {
+                "custom" : "LabelEncoderTrainer"
+            }
+        },
+        {   "node" : "Split train test",
+            "info" : {
+                "title" : "Splits data into train and test"
+            },
+            "category" : "Model Training",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "train_percentage", "param_type" : "number", "show" : true}
+            ],
+            "inputs" : [
+                {"port_label" : "features", "port_type" : "DataFrame" },
+                {"port_label" : "truth", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                {"port_label" : "features_train", "port_type" : "DataFrame" },
+                {"port_label" : "features_test", "port_type" : "DataFrame" },
+                {"port_label" : "truth_train", "port_type" : "DataFrame" },
+                {"port_label" : "truth_test", "port_type" : "DataFrame" }
+            ],
+            "dependencies" : {
+                "model_training": {
+					"origin": "custom",
+					"value": "TrainTestSplitter"
+				}
+            },
+			"origin" : {
+				"custom" : "TrainTestSplitter"
+			}
+        },
+        {   "node" : "Join Data Frames",
+            "category" : "Data Cleaning",
+            "info" : {
+                "title" : "Joins two tables"  
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "how", "param_type" : "option", "optionId" : "join_type", "show" : true},
+                {"param_label" : "index", "param_type" : "list", "show" : false}
+            ],
+            "inputs" : [
+                {"port_label" : "left", "port_type" : "DataFrame" },
+                {"port_label" : "right", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                {
+                "port_label" : "out",
+                "port_type" : "DataFrame"
+                }
+            ],
+            "dependencies" : {
+				"data_cleaning": {
+					"origin": "custom",
+					"value": "JoinDataFrame"
+				}
+			},
+			"origin" : {
+				"custom" : "JoinDataFrame"
+			}
+        },
+        {   "node" : "Feature Join",
+            "category" : "Feature Engineering",
+            "info" : {
+                "title" : "Joins two tables with features"  
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true}
+            ],
+            "inputs" : [
+                {"port_label" : "left", "port_type" : "DataFrame" },
+                {"port_label" : "right", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                {
+                "port_label" : "out",
+                "port_type" : "DataFrame"
+                }
+            ],
+            "dependencies" : {
+				"feature_engineering": {
+					"origin": "custom",
+					"value": "FeatureJoin"
+				}
+			},
+			"origin" : {
+				"custom" : "FeatureJoin"
+			}
+        },
+        {   "node" : "Drop Columns",
+            "info" : {
+                "title" : "Drops given columns"
+            },
+            "category" : "Feature Engineering",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "columns", "param_type" : "list", "show" : false}
+            ],
+            "inputs" : [
+                {"port_label" : "origin_table", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                {"port_label" : "resulting_table", "port_type" : "DataFrame" }
+            ],
+            "dependencies" : {
+				"feature_engineering": {
+					"origin": "custom",
+					"value": "ColumnDrop"
+				}
+			},
+			"origin" : {
+				"custom" : "ColumnDrop"
+			}
+        },
+        {   "node" : "CSVLoader",
+            "category" : "Data Collection",
+            "info" : {
+                "title" : "Loads CSV file from disk"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "path", "param_type" : "string", "show" : true},
+                {"param_label" : "separator", "param_type" : "string", "show" : false}
+            ],
+            "inputs" : [],
+            "outputs" : [
+                {
+                "port_label" : "out",
+                "port_type" : "DataFrame"
+                }
+            ],
+            "dependencies" : {
+                "data_collection" : {
+                    "origin": "custom",
+                    "value": "CSVLoader"
+                }
+            },
+            "external_dependencies" : [
+                "./data/<param:path>"
+            ],
+            "origin" : {
+                "custom" : "CSVLoader"
+            }
+        },
+        {   "node" : "JSONLoader",
+            "category" : "Data Collection",
+            "info" : {
+                "title" : "Loads JSON file from disk"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "path", "param_type" : "string", "show" : true}
+            ],
+            "inputs" : [],
+            "outputs" : [
+                {
+                "port_label" : "out",
+                "port_type" : "DataFrame"
+                }
+            ],
+            "dependencies" : {
+                "data_collection" : {
+                    "origin": "custom",
+                    "value": "JSONLoader"
+                }
+            },
+            "external_dependencies" : [
+                "./data/<param:path>"
+            ],
+            "origin" : {
+                "custom" : "JSONLoader"
+            }
+        },
+        {   "node" : "Replace Value",
+            "category": "Data Cleaning",
+            "info": {
+                "title": "Replace one value with another"
+            },
+            "params": [
+                {"param_label": "description", "param_type": "description", "show": true},
+                {"param_label": "column", "param_type": "string", "show": false},
+                {"param_label": "value_map", "param_type": "map", "show": false}
+            ],
+            "inputs": [
+                { 	"port_label": "data_in", "port_type": "DataFrame" }
+            ],
+            "outputs": [
+                {	"port_label": "out", "port_type": "DataFrame" }
+            ],
+            "dependencies": {
+                "data_cleaning" : {
+                    "origin": "custom",
+                    "value": "ReplaceValue"
+                }
+            },
+            "origin": {
+                "custom": "ReplaceValue"
+            }
+        },
+        {   "node" : "Replace Nulls Average",
+            "category": "Data Cleaning",
+            "info": {
+                "title": "Replace null values with the average of the column"
+            },
+            "params": [
+                {"param_label": "description", "param_type": "description", "show": true},
+                {"param_label": "column", "param_type": "string", "show": false}
+            ],
+            "inputs": [
+                { 	"port_label": "data_in", "port_type": "DataFrame" }
+            ],
+            "outputs": [
+                {	"port_label": "out", "port_type": "DataFrame" }
+            ],
+            "dependencies": {
+                "data_cleaning" : {
+                    "origin": "custom",
+                    "value": "ReplaceNullAverage"
+                }
+            },
+            "origin": {
+                "custom": "ReplaceNullAverage"
+            }
+        },
+        {   "node" : "Replace Nulls Zero",
+            "category": "Data Cleaning",
+            "info": {
+                "title": "Replace null values with 0s"
+            },
+            "params": [
+                {"param_label": "description", "param_type": "description", "show": true},
+                {"param_label": "column", "param_type": "string", "show": false}
+            ],
+            "inputs": [
+                { 	"port_label": "data_in", "port_type": "DataFrame" }
+            ],
+            "outputs": [
+                {	"port_label": "out", "port_type": "DataFrame" }
+            ],
+            "dependencies": {
+                "data_cleaning" : {
+                    "origin": "custom",
+                    "value": "ReplaceNullZero"
+                }
+            },
+            "origin": {
+                "custom": "ReplaceNullZero"
+            }
+        },
+        {   "node" : "Replace Nulls Mode",
+            "category": "Data Cleaning",
+            "info": {
+                "title": "Replace null values with the mode"
+            },
+            "params": [
+                {"param_label": "description", "param_type": "description", "show": true},
+                {"param_label": "column", "param_type": "string", "show": false}
+            ],
+            "inputs": [
+                { 	"port_label": "data_in", "port_type": "DataFrame" }
+            ],
+            "outputs": [
+                {	"port_label": "out", "port_type": "DataFrame" }
+            ],
+            "dependencies": {
+                "data_cleaning" : {
+                    "origin": "custom",
+                    "value": "ReplaceNullMode"
+                }
+            },
+            "origin": {
+                "custom": "ReplaceNullMode"
+            }
+        },
+        {   "node" : "OHCEncoder train",
+            "category" : "Feature Engineering",
+            "info" : {
+                "title" : "Trains One Hot Categorical Encoder and transforms data"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "columns", "param_type" : "list", "show" : false}
+            ],
+            "inputs" : [
+                { "port_label" : "data", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                { "port_label" : "out", "port_type" : "DataFrame" },
+                { "port_label" : "encoder", "port_type" : "Encoder" }
+            ],
+            "dependencies" : {
+                "feature_engineering.encoder_training" : {
+                    "origin": "custom",
+                    "value": "OneHotEncoderTrainer"
+                }
+            },
+            "origin" : {
+                "custom" : "OneHotEncoderTrainer"
+            }
+        },
+        {   "node" : "CatBoostEncoder train",
+            "category" : "Feature Engineering",
+            "info" : {
+                "title" : "Trains a Categorical Boosting Encoder and transforms data"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "columns", "param_type" : "list", "show" : false}
+            ],
+            "inputs" : [
+                { "port_label" : "data", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                { "port_label" : "out", "port_type" : "DataFrame" },
+                { "port_label" : "encoder", "port_type" : "Encoder" }
+            ],
+            "dependencies" : {
+                "feature_engineering.encoder_training" : {
+                    "origin": "custom",
+                    "value": "CatBoostEncoderTrainer"
+                }
+            },
+            "origin" : {
+                "custom" : "CatBoostEncoderTrainer"
+            }
+        },
+        {   "node" : "Reuse Encoder",
+            "category" : "Feature Engineering",
+            "info" : {
+                "title" : "Uses pre-trained encoder and transforms data"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true}
+            ],
+            "inputs" : [
+                { "port_label" : "data", "port_type" : "DataFrame" },
+                { "port_label" : "encoder", "port_type" : "Encoder" }
+            ],
+            "outputs" : [
+                { "port_label" : "out", "port_type" : "DataFrame" }
+            ],
+            "dependencies" : {
+                "feature_engineering" : {
+                    "origin": "custom",
+                    "value": "ReuseEncoder"
+                }
+            },
+            "origin" : {
+                "custom" : "ReuseEncoder"
+            }
+        },
+        {   "node" : "Reuse Scaler",
+            "category" : "Feature Engineering",
+            "info" : {
+                "title" : "Uses pre-trained scaler and transforms data"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true}
+            ],
+            "inputs" : [
+                { "port_label" : "data", "port_type" : "DataFrame" },
+                { "port_label" : "scaler", "port_type" : "Scaler" }
+            ],
+            "outputs" : [
+                { "port_label" : "out", "port_type" : "DataFrame" }
+            ],
+            "dependencies" : {
+                "feature_engineering" : {
+                    "origin": "custom",
+                    "value": "ReuseScaler"
+                }
+            },
+            "origin" : {
+                "custom" : "ReuseScaler"
+            }
+        },
+        {   "node" : "Robust Scaler train",
+            "category" : "Feature Engineering",
+            "info" : {
+                "title" : "Trains Robust Scaler and transforms data"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "columns", "param_type" : "list", "show" : false}
+            ],
+            "inputs" : [
+                { "port_label" : "data", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                { "port_label" : "out", "port_type" : "DataFrame" },
+                { "port_label" : "scaler", "port_type" : "Scaler" }
+            ],
+            "dependencies" : {
+                "feature_engineering.scaler_training" : {
+                    "origin": "custom",
+                    "value": "RobustScalerTrainer"
+                }
+            },
+            "origin" : {
+                "custom" : "RobustScalerTrainer"
+            }
+        },
+        {   "node" : "MaxAbs Scaler train",
+            "category" : "Feature Engineering",
+            "info" : {
+                "title" : "Trains MaxAbs Scaler and transforms data"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "columns", "param_type" : "list", "show" : false}
+            ],
+            "inputs" : [
+                { "port_label" : "data", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                { "port_label" : "out", "port_type" : "DataFrame" },
+                { "port_label" : "scaler", "port_type" : "Scaler" }
+            ],
+            "dependencies" : {
+                "feature_engineering.scaler_training" : {
+                    "origin": "custom",
+                    "value": "MaxAbsScalerTrainer"
+                }
+            },
+            "origin" : {
+                "custom" : "MaxAbsScalerTrainer"
+            }
+        },
+        {   "node" : "Standard Scaler train",
+            "category" : "Feature Engineering",
+            "info" : {
+                "title" : "Trains Standard Scaler and transforms data"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "columns", "param_type" : "list", "show" : false}
+            ],
+            "inputs" : [
+                { "port_label" : "data", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                { "port_label" : "out", "port_type" : "DataFrame" },
+                { "port_label" : "scaler", "port_type" : "Scaler" }
+            ],
+            "dependencies" : {
+                "feature_engineering.scaler_training" : {
+                    "origin": "custom",
+                    "value": "StandardScalerTrainer"
+                }
+            },
+            "origin" : {
+                "custom" : "StandardScalerTrainer"
+            }
+        },
+        {   "node" : "MinMax Scaler train",
+            "category" : "Feature Engineering",
+            "info" : {
+                "title" : "Trains MinMax Scaler and transforms data"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "columns", "param_type" : "list", "show" : false}
+            ],
+            "inputs" : [
+                { "port_label" : "data", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                { "port_label" : "out", "port_type" : "DataFrame" },
+                { "port_label" : "scaler", "port_type" : "Scaler" }
+            ],
+            "dependencies" : {
+                "feature_engineering.scaler_training" : {
+                    "origin": "custom",
+                    "value": "MinMaxScalerTrainer"
+                }
+            },
+            "origin" : {
+                "custom" : "MinMaxScalerTrainer"
+            }
+        },
+        {   "node" : "Linear Regressor train",
+            "category" : "Model Training",
+            "info" : {
+                "title" : "Trains Linear Regression"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true}
+            ],
+            "inputs" : [
+                { "port_label" : "features", "port_type" : "DataFrame" },
+                { "port_label" : "truth", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                { "port_label" : "model", "port_type" : "Model" }
+            ],
+            "dependencies" : {
+                "model_training" : {
+                    "origin": "custom",
+                    "value": "LinearRegressorTrainer"
+                }
+            },
+            "origin" : {
+                "custom" : "LinearRegressorTrainer"
+            }
+        },
+        {   "node" : "Random Forest Classifier train",
+            "category" : "Model Training",
+            "info" : {
+                "title" : "Trains Random Forest Classifier"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "max_depth", "param_type" : "number", "show" : false},
+                {"param_label" : "n_estimators", "param_type" : "number", "show" : false}
+            ],
+            "inputs" : [
+                { "port_label" : "features", "port_type" : "DataFrame" },
+                { "port_label" : "truth", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                { "port_label" : "model", "port_type" : "Model" }
+            ],
+            "dependencies" : {
+                "model_training" : {
+                    "origin": "custom",
+                    "value": "RandomForestTreeClassifierTrainer"
+                }
+            },
+            "origin" : {
+                "custom" : "RandomForestTreeClassifierTrainer"
+            }
+        },
+        {   "node" : "SVM train",
+            "category" : "Model Training",
+            "info" : {
+                "title" : "Trains Support Vector Machine"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "kernel", "param_type" : "option", "optionId" : "SVMKernel", "show" : false}
+            ],
+            "inputs" : [
+                { "port_label" : "features", "port_type" : "DataFrame" },
+                { "port_label" : "truth", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                { "port_label" : "model", "port_type" : "Model" }
+            ],
+            "dependencies" : {
+                "model_training" : {
+                    "origin": "custom",
+                    "value": "SVMTrainer"
+                }
+            },
+            "origin" : {
+                "custom" : "SVMTrainer"
+            }
+        },
+        {   "node" : "Random Forest Regressor train",
+            "category" : "Model Training",
+            "info" : {
+                "title" : "Trains Random Forest Regressor"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "n_estimators", "param_type" : "number", "show" : false},
+                {"param_label" : "max_depth", "param_type" : "number", "show" : false},
+                {"param_label" : "min_samples_leaf", "param_type" : "number", "show" : false}
+            ],
+            "inputs" : [
+                { "port_label" : "features", "port_type" : "DataFrame" },
+                { "port_label" : "truth", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                { "port_label" : "model", "port_type" : "Model" }
+            ],
+            "dependencies" : {
+                "model_training" : {
+                    "origin": "custom",
+                    "value": "RandomForestRegressorTrainer"
+                }
+            },
+            "origin" : {
+                "custom" : "RandomForestRegressorTrainer"
+            }
+        },
+        {   "node" : "YOLOv11 train",
+            "category" : "Model Training",
+            "info" : {
+                "title" : "Trains YoloV11 model for bounding box detection"
+            },
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "data_path", "param_type" : "string", "show" : true},
+                {"param_label" : "epochs", "param_type" : "number", "show" : true},
+                {"param_label" : "imgsz", "param_type" : "number", "show" : true}
+            ],
+            "inputs" : [],
+            "outputs" : [
+                { "port_label" : "model", "port_type" : "Model" },
+                { "port_label" : "train_stats", "port_type" : "DataFrame" }
+            ],
+            "dependencies" : {
+                "model_training" : {
+                    "origin": "custom",
+                    "value": "YOLOv11Trainer"
+                }
+            },
+            "origin" : {
+                "custom" : "YOLOv11Trainer"
+            }
+        },
+        {   "node" : "CreateAdams Optimizer",
+            "info" : {
+                "title" : "Creates Adam optimizer"
+            },  
+            "category" : "Model Training",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "optimizer_parameters", "param_type" : "string", "show" : false}
+            ],
+            "inputs" : [],
+            "outputs" : [
+                { "port_label" : "optimizer", "port_type" : "Optimizer" }
+            ],
+            "dependencies" : {
+                "model_training" : {
+                    "origin": "custom",
+                    "value": "CreateAdamsOptimizer"
+                }
+            },
+            "origin" : {
+                "custom" : "CreateAdamsOptimizer"
+            }
+        },
+        {   "node" : "CreateRMS Optimizer",
+            "info" : {
+                "title" : "Creates RMS optimizer"
+            },
+            "category" : "Model Training",  
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "optimizer_parameters", "param_type" : "string", "show" : false}
+            ],
+            "inputs" : [],
+            "outputs" : [
+                { "port_label" : "optimizer", "port_type" : "Optimizer" }
+            ],
+            "dependencies" : {
+                "model_training" : {
+                    "origin": "custom",
+                    "value": "CreateRMSOptimizer"
+                }
+            },
+            "origin" : {
+                "custom" : "CreateRMSOptimizer"
+            }
+        },
+        {   "node" : "Evaluate accuracy",
+            "info" : {
+                "title" : "Evaluates accuracy"
+            },
+            "category" : "Model Evaluation",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true}
+            ],
+            "inputs" : [
+                { "port_label" : "model", "port_type" : "Model" },
+                { "port_label" : "features", "port_type" : "DataFrame" },
+                { "port_label" : "truth", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [
+                { "port_label" : "accuracy", "port_type" : "Result" }
+            ],
+            "dependencies" : {
+                "model_evaluation" : {
+                    "origin": "custom",
+                    "value": "EvaluateAccuracy"
+                }
+            },
+            "origin" : {
+                "custom" : "EvaluateAccuracy"
+            }
+        },
+        {   "node" : "Image Prediction",
+            "info" : {
+                "title" : "Uses a model to do BB detection on an image"
+            },
+            "category" : "Model Evaluation",
+            "params" : [
+                {"param_label" : "description", "param_type" : "description", "show" : true},
+                {"param_label" : "save_folder", "param_type" : "string", "show" : false}
+            ],
+            "inputs" : [
+                { "port_label" : "model", "port_type" : "Model" },
+                { "port_label" : "image_paths", "port_type" : "DataFrame" }
+            ],
+            "outputs" : [],
+            "dependencies" : {
+                "model_evaluation" : {
+                    "origin": "custom",
+                    "value": "ImagePrediction"
+                }
+            },
+            "origin" : {
+                "custom" : "ImagePrediction"
+            }
+        },
+        {   "node" : "Model predict",
+            "category": "Deployment",
+            "info": {
+                "title": "Performs prediction of a model"
+            },
+            "params": [
+                {"param_label": "description", "param_type": "description", "show": true}
+            ],
+            "inputs": [
+                { 	"port_label": "model", "port_type": "Model" },
+                { 	"port_label": "features", "port_type": "DataFrame" }
+            ],
+            "outputs": [
+                {	"port_label": "prediction", "port_type": "DataFrame" }
+            ],
+            "dependencies": {
+                "deployment" : {
+                    "origin": "custom",
+                    "value": "ModelPredict"
+                }
+            },
+            "origin": {
+                "custom": "ModelPredict"
+            }
+        },
+        {   "node" : "To CSV",
+            "category": "Deployment",
+            "info": {
+                "title": "Stores a dataframe to a CSV file"
+            },
+            "params": [
+                {"param_label": "description", "param_type": "description", "show": true},
+                {"param_label": "path", "param_type": "string", "show": true}
+            ],
+            "inputs": [
+                { 	"port_label": "dataframe", "port_type": "DataFrame" }
+            ],
+            "outputs": [],
+            "dependencies": {
+                "deployment" : {
+                    "origin": "custom",
+                    "value": "ToCSV"
+                }
+            },
+            "origin": {
+                "custom": "ToCSV"
+            }
+        }
+    ]
+}

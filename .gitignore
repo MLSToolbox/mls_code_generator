@@ -32,5 +32,7 @@ output/*
 .vscode/*
 .vscode
 
-mls*
 
+mlcg_env
+*.coverage**
+.coverage

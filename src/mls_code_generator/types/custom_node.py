@@ -11,8 +11,8 @@ class CustomNode(Node):
             }
         for input_socket in config['inputs']:
             self.inputs.append(input_socket['port_label'])
-        for output in config['outputs']:
-            self.outputs.append(output['port_label'])
+        for output_socket in config['outputs']:
+            self.outputs.append(output_socket['port_label'])
         self.node_name = config['node']
         self.origin = config['origin']
         self.module_dependencies = config['dependencies']
