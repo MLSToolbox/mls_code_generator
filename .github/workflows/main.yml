@@ -55,28 +55,9 @@ jobs:
         echo "Looking for any HTML files:"
         find . -name "*.html" 2>/dev/null || echo "No HTML files found"
     
-    - name: Generate coverage badge
-      run: |
-        pip install coverage-badge
-        coverage-badge -o coverage.svg
-    
-    - name: Upload coverage badge
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-badge
-        path: coverage.svg
-    
-    - name: Upload coverage reports to Codecov (optional)
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
-    
     - name: Upload coverage HTML report as artifact
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
-        path: htmlcov/
+        path: src/mls_code_generator/htmlcov/
         if-no-files-found: warn
