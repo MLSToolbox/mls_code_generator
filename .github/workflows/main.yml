@@ -12,7 +12,7 @@ jobs:
     
     strategy:
       matrix:
-        python-version: [3.10]  # Test against multiple Python versions
+        python-version: [3.10.18]  # Test against multiple Python versions
     
     steps:
     - name: Checkout code
