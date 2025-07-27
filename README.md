@@ -1,5 +1,7 @@
 # mls_code_generator
 
+[![Python Tests and Coverage](https://github.com/MLSToolbox/mls_code_generator/actions/workflows/main.yml/badge.svg)](https://github.com/MLSToolbox/mls_code_generator/actions/workflows/main.yml)
+
 ## Documentation
 You can find all the information you need in our [WIKI!](https://github.com/MLSToolbox/mls_code_generator/wiki).
 

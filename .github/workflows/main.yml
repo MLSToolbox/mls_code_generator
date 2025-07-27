@@ -1,0 +1,63 @@
+name: Python Tests and Coverage
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: [3.10.18]  # Test against multiple Python versions
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov
+        # Install your project dependencies
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+        # Alternative: if you use setup.py or pyproject.toml
+        # pip install -e .
+    
+    - name: Run pytest with coverage
+      run: |
+        cd ./src/mls_code_generator
+        pytest --cov=. --cov-report=xml --cov-report=html:htmlcov --cov-report=term-missing --cov-fail-under=80
+    
+    - name: Debug - List files after tests
+      run: |
+        echo "Current directory contents:"
+        ls -la
+        echo "Looking for htmlcov directory:"
+        find . -name "htmlcov" -type d 2>/dev/null || echo "htmlcov directory not found"
+        echo "Looking for any HTML files:"
+        find . -name "*.html" 2>/dev/null || echo "No HTML files found"
+    
+    - name: Upload coverage HTML report as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: src/mls_code_generator/htmlcov/
+        if-no-files-found: warn
