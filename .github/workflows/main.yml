@@ -44,12 +44,39 @@ jobs:
     - name: Run pytest with coverage
       run: |
         cd ./src/mls_code_generator
-        pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term-missing --cov-fail-under=80
-      # This will fail if coverage is below 80%. Adjust the percentage as needed.
+        pytest --cov=. --cov-report=xml --cov-report=html:htmlcov --cov-report=term-missing --cov-fail-under=80
     
-    - name: Upload coverage HTML report as artifact
-      if: always()
+    - name: Debug - List files after tests
+      run: |
+        echo "Current directory contents:"
+        ls -la
+        echo "Looking for htmlcov directory:"
+        find . -name "htmlcov" -type d 2>/dev/null || echo "htmlcov directory not found"
+        echo "Looking for any HTML files:"
+        find . -name "*.html" 2>/dev/null || echo "No HTML files found"
+    
+    - name: Generate coverage badge
+      run: |
+        pip install coverage-badge
+        coverage-badge -o coverage.svg
+    
+    - name: Upload coverage badge
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-report-${{ matrix.python-version }}
+        name: coverage-badge
+        path: coverage.svg
+    
+    - name: Upload coverage reports to Codecov (optional)
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+    
+    - name: Upload coverage HTML report as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
         path: htmlcov/
+        if-no-files-found: warn
