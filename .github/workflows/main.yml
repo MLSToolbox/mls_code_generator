@@ -43,6 +43,7 @@ jobs:
     
     - name: Run pytest with coverage
       run: |
+        cd ./src/mls_code_generator
         pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term-missing --cov-fail-under=80
       # This will fail if coverage is below 80%. Adjust the percentage as needed.
     
