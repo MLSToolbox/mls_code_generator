@@ -8,7 +8,7 @@ MLSToolbox Code Generator is a user-friendly, extensible, and comprehensive tool
 ## Documentation
 You can find all the information you need in our [WIKI!](https://github.com/MLSToolbox/mls_code_generator/wiki).
 
-# Demos
+## Demos
 This video shows how to use the MLSToolbox Pipeline Code generator to define a pipeline and generate the code to create the ML model. More details about the example used in this video are available at [mls_code_generator Wiki](https://github.com/MLSToolbox/mls_code_generator/wiki/Diabetes-prediction).
 
 https://github.com/user-attachments/assets/5c783523-529b-4cee-a7e6-7fc400e53633
