@@ -36,3 +36,7 @@ output/*
 mlcg_env
 *.coverage**
 .coverage
+# Variables de entorno - NO SUBIR A GIT
+.env.local
+.env.development
+.env.production

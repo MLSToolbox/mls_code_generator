@@ -1,5 +1,8 @@
 FROM python:3.10-alpine
 
+# Build arguments
+ARG ENVIRONMENT=local
+
 WORKDIR /app
 
 COPY ./src/requirements.txt /app
@@ -7,7 +10,9 @@ RUN pip3 install -r requirements.txt
 
 COPY ./src /app
 
-ENV EXECUTION_MODE "prod"
+# Environment variables
+ENV EXECUTION_MODE="prod"
+ENV ENVIRONMENT=${ENVIRONMENT}
 
 ENTRYPOINT ["python3"]
 CMD ["server.py"]

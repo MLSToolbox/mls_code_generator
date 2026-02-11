@@ -139,15 +139,22 @@ def get_available_editor():
 
 
 if __name__ == "__main__":
-    CORS(app, supports_credentials=True, origins=["*"])
+    # Read CORS origins from environment
+    cors_origins = os.getenv("CORS_ORIGINS", "*")
+    if cors_origins == "*":
+        cors_origins_list = ["*"]
+    else:
+        cors_origins_list = [origin.strip() for origin in cors_origins.split(",")]
+    
+    CORS(app, supports_credentials=True, origins=cors_origins_list)
     app.config["CORS_HEADERS"] = ["Content-Type", "X-Requested-With", "X-CSRFToken"]
 
-    execution_mode = os.getenv("EXECUTION_MODE", "debug")
+    # Read configuration from environment variables
+    HOST = os.getenv("HOST", "0.0.0.0")
+    PORT = int(os.getenv("PORT", "5050"))
+    DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
-    HOST = "0.0.0.0"
-    PORT = 5050
-
-    if execution_mode == "prod":
-        serve(app, host=HOST, port=PORT)
-    else:
+    if DEBUG:
         app.run(host=HOST, port=PORT, debug=True)
+    else:
+        serve(app, host=HOST, port=PORT)
