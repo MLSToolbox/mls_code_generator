@@ -1,0 +1,26 @@
+services:
+  code-generator:
+    build:
+      context: .
+      args:
+        ENVIRONMENT: ${ENVIRONMENT:-local}
+    image: ${IMAGE_TAG:-mls_code_generator:local}
+    container_name: ${CONTAINER_NAME:-mls_code_generator}
+    volumes:
+      - ./src:/app
+    ports:
+      - "${EXTERNAL_PORT:-5050}:${PORT:-5050}"
+    environment:
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-5050}
+      - DEBUG=${DEBUG:-False}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+      - EXECUTION_MODE=prod
+      - ENVIRONMENT=${ENVIRONMENT:-local}
+    networks:
+      - mls-network
+    restart: unless-stopped
+
+networks:
+  mls-network:
+    name: ${DOCKER_NETWORK:-mls-network}
