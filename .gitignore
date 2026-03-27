@@ -31,6 +31,8 @@ fixed_editor.json
 output/*
 .vscode/*
 .vscode
+.vs/
+*.user
 
 
 mlcg_env
@@ -40,3 +42,4 @@ mlcg_env
 .env.local
 .env.development
 .env.production
+s
