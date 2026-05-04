@@ -2,6 +2,7 @@ class Pipeline:
     def __init__(self):
         self.nodes = {}
         self.steps = {}
+        self.services = {}
         self.pipeline_id = ""
 
     def load_pipeline(self, loader):
@@ -47,6 +48,22 @@ class Pipeline:
         if node_id not in self.nodes:
             raise ValueError("Node not found")
         return self.nodes[node_id]
+    def get_service(self, service_id : str):
+        """
+        Retrieves a service from the pipeline by its ID.
+
+        Parameters:
+            service_id (str): The ID of the service to retrieve.
+
+       Returns:
+            The service object associated with the given service ID.
+
+       Raises:
+            ValueError: If the service ID is not found in the pipeline.
+        """
+        if service_id not in self.services:
+            raise ValueError("Service not found")
+        return self.services[service_id]
     def add_steps(self, steps):
         """
         Adds a collection of steps to the pipeline.
@@ -69,3 +86,14 @@ class Pipeline:
             None
         """
         self.nodes.update(nodes)
+    def add_services(self, services):
+        """
+        Adds a collection of services to the pipeline.
+
+        Parameters:
+            services (dict): A dictionary of services to add to the pipeline.
+
+        Returns:
+            None
+        """
+        self.services.update(services)

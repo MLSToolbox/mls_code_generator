@@ -3,6 +3,7 @@
 from os import link
 from .types.node import Node
 from .types.step import Step
+from .types.service import Service
 from .types.pipeline import Pipeline
 class PipelineLoader:
     """ PipelineLoader: Component that loads a pipeline. """
@@ -14,8 +15,8 @@ class PipelineLoader:
         Loads a pipeline from the provided content and node configuration.
 
         This function takes a parent pipeline and loads a new pipeline into it.
-        It creates all the steps and nodes from the content, adds connections between them,
-        and sets the data for each step from the parent node.
+        It creates all the steps and nodes from the content, groups the steps into services, 
+        adds connections between them, and sets the data for each step from the parent node.
         It also injects output routes and sets the parent for each node.
 
         Parameters:
@@ -27,6 +28,7 @@ class PipelineLoader:
         
         all_steps = {}
         all_nodes = {}
+        all_services = {}
         available_nodes = self.node_config
         content = self.content
 
@@ -34,6 +36,10 @@ class PipelineLoader:
         for step in content:
             current_step = Step(step)
             all_steps[step] = current_step
+            service_id = content[step].get('service_id', 'monolith')
+            if service_id not in all_services:
+                all_services[service_id] = Service(service_id)
+            all_services[service_id].add_step(current_step)
             for node in content[step]['nodes']:
                 if node['nodeName'] not in available_nodes.get_all_nodes():
                     class_node = Node()
@@ -105,3 +111,4 @@ class PipelineLoader:
                 node.set_parent(step)
         parent.add_steps(all_steps)
         parent.add_nodes(all_nodes)
+        parent.add_services(all_services)

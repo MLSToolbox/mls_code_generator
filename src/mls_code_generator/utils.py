@@ -20,6 +20,7 @@ def fix_editor(content):
         new_module = new_content[module]
         new_module['nodes'] = []
         new_module['connections'] = []
+        new_module['service_id'] = modules[module].get('service_id', 'monolith')
 
         for node in modules[module]['nodes']:
             new_node = {}

@@ -64,3 +64,24 @@ def test_get_step(ready_pipeline: Pipeline):
     assert str(received_step.nodes) == "[Input, Output, Output, Label Encoder train, Select Columns, Select Columns]"
     assert received_step.data == {'nodeName': 'Step', 'id': '0c7788842ca589f9', 'params': {'Stage name': {'type': 'description', 'value': 'Feature Engineering'}, 'color': {'type': 'color', 'value': 'rgba(255, 99, 132, 0.75)'}, 'link': {'type': 'link', 'value': ''}}}
     assert received_step.original_name == "Feature Engineering"
+
+def test_load_pipeline_with_multiple_services(pipeline: Pipeline, ready_pipeline_loader: PipelineLoader):
+    test_content = ready_pipeline_loader.content
+    
+    claus_steps = list(test_content['root']['nodes'])
+    
+    id_bloc_1 = claus_steps[0]['id'] 
+    id_bloc_2 = claus_steps[1]['id'] 
+    
+    test_content[id_bloc_1]['service_id'] = "Servei_A"
+    test_content[id_bloc_2]['service_id'] = "Servei_B"
+    
+    pipeline.load_pipeline(ready_pipeline_loader)
+    
+    assert "Servei_A" in pipeline.services
+    assert "Servei_B" in pipeline.services
+    assert "monolith" in pipeline.services
+    
+    servei_a = pipeline.get_service("Servei_A")
+    assert len(servei_a.steps) == 1
+    assert servei_a.steps[0].id == id_bloc_1
