@@ -1,8 +1,8 @@
 # arxiu temporal pels meus tests en local
 
-import os
-import sys
+import os, sys
 import pytest
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "src")))
 
 if __name__ == "__main__":
     # Canvi del directori de treball automaticament perque els JSON es trobin

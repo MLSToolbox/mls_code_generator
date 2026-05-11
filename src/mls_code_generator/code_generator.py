@@ -2,11 +2,14 @@
 
 from copy import deepcopy
 
+from mls_code_generator.connection_classifier import classify_pipeline_connections
+
 class CodeGenerator:
     """ CodeGenerator: Component that generates code. """
     def __init__(self):
         self.modules = {}
         self.params = {}
+        self.connections = None
 
     def __generate_stage_code(self, pipeline):
         """
@@ -176,7 +179,7 @@ class CodeGenerator:
         Generates code for a given pipeline.
 
         This function takes a pipeline as input, generates code for each step in the pipeline,
-        and generates the main code that orchestrates the steps.
+        and generates the main code that orchestrates the steps. Classifies connections first.
 
         Parameters:
             pipeline (Pipeline): The pipeline for which to generate code.
@@ -184,6 +187,7 @@ class CodeGenerator:
         Returns:
             None
         """
+        self.connections = classify_pipeline_connections(pipeline)
         self.__generate_stage_code(pipeline)
         self.__generate_main_code(pipeline)
         self.__get_params_file(pipeline)

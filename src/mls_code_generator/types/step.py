@@ -1,5 +1,3 @@
-
-
 class Step:
     def __init__(self, id : str) -> None:
         self.id = id
@@ -11,6 +9,8 @@ class Step:
         self.outs = []
         self.variable_name = ""
         self.dependencies = []
+        self.external_incoming = []
+        self.external_outgoing = []
 
     def __repr__(self):
         return str({
@@ -23,6 +23,8 @@ class Step:
             "outs" : self.outs,
             "dependencies" : self.dependencies,
             "variable_name" : self.variable_name,
+            "external_incoming" : [getattr(x, 'source_step_id', None) for x in self.external_incoming],
+            "external_outgoing" : [getattr(x, 'target_step_id', None) for x in self.external_outgoing]
         })
     def __str__(self):
         return str(self.__repr__())
