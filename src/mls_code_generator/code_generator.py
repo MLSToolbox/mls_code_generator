@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 
-from mls_code_generator.connection_classifier import classify_pipeline_connections
+from mls_code_generator.connection_classifier import classify_pipeline_connections, ConnectionType
 
 class CodeGenerator:
     """ CodeGenerator: Component that generates code. """
@@ -142,6 +142,95 @@ class CodeGenerator:
 
         self.modules["main"] = code
 
+    def __generate_service_code(self, pipeline):
+        """
+        Generates a service main file for each service in the pipeline. 
+
+        This function iterates over `pipeline.services` and, for each Service,
+        composes the source of a standalone module named `service_<service_id>_main.py`.
+        Each generated module includes the minimal imports required to construct the
+        service's stages, a `main()` function that instantiates those stages and wires
+        them into a local `Pipeline()` instance, and the final invocation that executes
+        the local pipeline. The generated source is stored in `self.modules` so that a
+        subsequent packaging step can write the modules to disk.
+    
+        Parameters:
+            pipeline (Pipeline): The pipeline for which per-service mains are generated.
+
+        Returns:
+            None        
+        """
+        def _step_id_of(obj):
+            if hasattr(obj, "id"):
+                return getattr(obj, "id")
+            return str(obj)
+
+        conn_lookup = {}
+        if self.connections:
+            for c in self.connections:
+                key = (c.source_step_id, c.target_step_id, c.target_port)
+                conn_lookup[key] = c
+
+        for svc_id, svc in pipeline.services.items():
+            steps_in_service = getattr(svc, "steps", [])
+            svc_step_ids = {_step_id_of(s) for s in steps_in_service}
+
+        create_lines = []
+        for step in steps_in_service:
+            if hasattr(step, "params") and "link" in step.params and step.params["link"]["value"] != "":
+                continue
+            create_lines.append(f"from {step.name} import create_{step.name}")
+
+        code = ""
+        code += f'""" service_{svc_id}_main.py """\n\n'
+        code += "import warnings\n"
+        code += "warnings.filterwarnings('ignore')\n\n"
+        code += "from mls_lib.orchestration import Pipeline\n"
+        for line in sorted(set(create_lines)):
+            code += line + "\n"
+        code += "\n"
+        code += "def main():\n"
+        code += "\troot = Pipeline()\n\n"
+
+        for step in steps_in_service:
+            c_step = step
+            if hasattr(c_step, "params") and "link" in c_step.params and c_step.params["link"]["value"] != "":
+                continue
+            code += f"\t{c_step.name} = create_{c_step.name}()\n"
+        code += "\n"
+
+        for step in steps_in_service:
+            c_step = step
+            if hasattr(c_step, "params") and "link" in c_step.params and c_step.params["link"]["value"] != "":
+                continue
+            code += f"\troot.add_stage({c_step.name}, \n"
+            for dependency in c_step.dependencies:
+                inp_obj, inp_port, me_port = dependency
+                src_id = _step_id_of(inp_obj)
+                target_id = _step_id_of(c_step)
+
+                conn_info = conn_lookup.get((src_id, target_id, me_port))
+                if conn_info is not None:
+                    is_internal = (conn_info.conn_type is ConnectionType.INTERNAL)    
+                else:
+                    is_internal = (src_id in svc_step_ids)
+
+                if is_internal:
+                    src_name = getattr(inp_obj, "name", str(src_id))
+                    code += f"\t\t{me_port} = ({src_name}, '{inp_port}'),\n"
+                else:
+                    #TODO
+                    placeholder = f"external_{src_id}_to_{c_step.name}"
+                    code += f"\t\t# TODO (IB5/IB6): Inject REST adapter and deserialize into '{placeholder}'\n"
+                    code += f"\t\t{me_port} = ({placeholder}, '{inp_port}'),\n"
+            code += "\t)\n\n"
+
+        code += "\troot.execute()\n"
+        code += "\nif __name__ == '__main__':\n"
+        code += "\tmain()\n"
+        module_key = f"service_{svc_id}_main"
+        self.modules[module_key] = code       
+
     def __get_params_file(self, pipeline):
         """
         Generates the code for the parameters file.
@@ -179,7 +268,11 @@ class CodeGenerator:
         Generates code for a given pipeline.
 
         This function takes a pipeline as input, generates code for each step in the pipeline,
-        and generates the main code that orchestrates the steps. Classifies connections first.
+        and generates the main code that orchestrates the steps. It classifies pipeline
+        connections before generation and supports two generation modes: 'services' and 'monolith'.
+        When the mode is 'services' it generates one service-specific module per Service;
+        otherwise it generates a single orchestrator module that instantiates and executes
+        all stages together.
 
         Parameters:
             pipeline (Pipeline): The pipeline for which to generate code.
@@ -189,8 +282,13 @@ class CodeGenerator:
         """
         self.connections = classify_pipeline_connections(pipeline)
         self.__generate_stage_code(pipeline)
-        self.__generate_main_code(pipeline)
+        mode = getattr(pipeline, "generation_mode", "monolith")
+        if mode == "services":
+            self.__generate_service_code(pipeline)
+        else:
+            self.__generate_main_code(pipeline)
         self.__get_params_file(pipeline)
+
     def get_modules(self):
         """
         Returns a deep copy of the modules dictionary.
