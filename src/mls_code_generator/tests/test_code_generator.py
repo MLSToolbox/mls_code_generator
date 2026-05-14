@@ -3,6 +3,7 @@ from ..code_generator import CodeGenerator
 from ..pipeline_loader import PipelineLoader
 from ..configuration_loader import ConfigLoader
 from ..types import Pipeline
+from ..connection_classifier import classify_pipeline_connections
 import json
 import os
 
@@ -40,6 +41,32 @@ def ready_pipeline(pipeline: Pipeline, ready_pipeline_loader) -> Pipeline:
     pipeline.load_pipeline(ready_pipeline_loader)
     return pipeline
 
+@pytest.fixture
+def ready_pipeline_single_service():
+    with open("./tests/files/nodes.json", "r", encoding="utf-8") as f:
+        nodes = json.load(f)["nodes"]
+    with open("./tests/files/mls_editor_single_service.json", "r", encoding="utf-8") as f:
+        code = json.load(f)
+
+    node_configuration = ConfigLoader(content=nodes)
+    pipeline_loader = PipelineLoader(code, node_configuration)
+    pipeline = Pipeline()
+    pipeline.load_pipeline(pipeline_loader)
+    return pipeline
+
+@pytest.fixture
+def ready_pipeline_multi_service():
+    with open("./tests/files/nodes.json", "r", encoding="utf-8") as f:
+        nodes = json.load(f)["nodes"]
+    with open("./tests/files/mls_editor_multi_service.json", "r", encoding="utf-8") as f:
+        code = json.load(f)
+
+    node_configuration = ConfigLoader(content=nodes)
+    pipeline_loader = PipelineLoader(code, node_configuration)
+    pipeline = Pipeline()
+    pipeline.load_pipeline(pipeline_loader)
+    return pipeline
+
 def test_empty_code_generator():
     code_generator = CodeGenerator()
     assert code_generator.modules == {}
@@ -59,3 +86,39 @@ def test_generate_code(ready_pipeline: Pipeline):
     with open("./tests/files/params.json", "r", encoding="utf-8") as file:
         excepted_params = json.load(file)
         assert excepted_params == code_generator.params
+
+def test_generate_code_single_service_e2e(ready_pipeline_single_service):
+    pipeline = ready_pipeline_single_service
+    pipeline.generation_mode = "services"
+
+    cg = CodeGenerator()
+    cg.generate_code(pipeline)
+
+    svc_ids = list(pipeline.services.keys())
+    assert len(svc_ids) >= 1
+    for svc_id in svc_ids:
+        assert f"service_{svc_id}_main" in cg.modules
+
+    if len(svc_ids) == 1:
+        module_text = cg.modules[f"service_{svc_ids[0]}_main"]
+        assert "TODO (IB5/IB6)" not in module_text
+
+def test_generate_code_multi_service_e2e(ready_pipeline_multi_service):
+    pipeline = ready_pipeline_multi_service
+    pipeline.generation_mode = "services"
+
+    cg = CodeGenerator()
+    cg.generate_code(pipeline)
+
+    for svc_id in pipeline.services.keys():
+        assert f"service_{svc_id}_main" in cg.modules
+
+    conns = classify_pipeline_connections(pipeline)
+    externals = [c for c in conns if getattr(c.conn_type, "value", None) == "external" or getattr(c.conn_type, "name", None) == "EXTERNAL"]
+    if externals:
+        ci = externals[0]
+        target_step = pipeline.steps[ci.target_step_id]
+        placeholder = f"external_{ci.source_step_id}_to_{target_step.name}"
+        module_text = cg.modules[f"service_{ci.target_service_id}_main"]
+        assert "TODO (IB5/IB6)" in module_text
+        assert placeholder in module_text
