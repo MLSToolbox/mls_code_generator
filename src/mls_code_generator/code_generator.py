@@ -1,8 +1,10 @@
 """ CodeGenerator: Component that generates code. """
 
+import os
 from copy import deepcopy
 
 from mls_code_generator.connection_classifier import classify_pipeline_connections, ConnectionType
+from mls_code_generator.services_factory import ServicesFactory
 
 class CodeGenerator:
     """ CodeGenerator: Component that generates code. """
@@ -230,6 +232,12 @@ class CodeGenerator:
         code += "\tmain()\n"
         module_key = f"service_{svc_id}_main"
         self.modules[module_key] = code       
+
+        output_base = getattr(self, "output_dir", None)
+        if output_base:
+            service_output = os.path.join(output_base, "services", str(svc_id))
+            adapter = ServicesFactory.get_instance().get_service_adapter("flask")
+            adapter.generate_service_code(svc, service_output)
 
     def __get_params_file(self, pipeline):
         """

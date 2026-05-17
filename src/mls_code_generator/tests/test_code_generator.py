@@ -122,3 +122,39 @@ def test_generate_code_multi_service_e2e(ready_pipeline_multi_service):
         module_text = cg.modules[f"service_{ci.target_service_id}_main"]
         assert "TODO (IB5/IB6)" in module_text
         assert placeholder in module_text
+
+def test_services_factory_returns_flask_adapter():
+    from mls_code_generator.services_factory import ServicesFactory
+    from mls_code_generator.adapters.flask_adapter import FlaskServiceAdapter
+
+    factory = ServicesFactory.get_instance()
+    adapter = factory.get_service_adapter("flask")
+    assert isinstance(adapter, FlaskServiceAdapter)
+
+def test_flask_adapter_writes_app_and_readme(tmp_path):
+    from mls_code_generator.adapters.flask_adapter import FlaskServiceAdapter
+
+    adapter = FlaskServiceAdapter()
+    svc_dummy = type("SVC", (), {"service_id": "svc_test"})()
+    out = tmp_path / "svc_test"
+    adapter.generate_service_code(svc_dummy, str(out))
+
+    app_file = out / "app.py"
+    readme = out / "README.generated"
+    assert app_file.exists()
+    assert readme.exists()
+    content = app_file.read_text(encoding="utf-8")
+    assert "def health()" in content
+    assert "def execute()" in content
+
+def test_generate_code_writes_service_entrypoints(tmp_path, ready_pipeline):
+    pipeline = ready_pipeline
+    pipeline.generation_mode = "services"
+    cg = CodeGenerator()
+    cg.output_dir = str(tmp_path / "out")
+    cg.generate_code(pipeline)
+
+    for svc_id in pipeline.services.keys():
+        svc_path = tmp_path / "out" / "services" / str(svc_id)
+        assert svc_path.exists()
+        assert (svc_path / "app.py").exists()
