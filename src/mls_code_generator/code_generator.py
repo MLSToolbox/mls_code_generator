@@ -221,9 +221,12 @@ class CodeGenerator:
                     src_name = getattr(inp_obj, "name", str(src_id))
                     code += f"\t\t{me_port} = ({src_name}, '{inp_port}'),\n"
                 else:
-                    #TODO
-                    placeholder = f"external_{src_id}_to_{c_step.name}"
-                    code += f"\t\t# TODO (IB5/IB6): Inject REST adapter and deserialize into '{placeholder}'\n"
+                    placeholder = f"external_{src_id}_to_{c_step.name}_{inp_port}"
+                    code += f"\t\t{placeholder}_payload = inputs.get('{inp_port}')\n"
+                    code += f"\t\tif {placeholder}_payload:\n"
+                    code += f"\t\t\t{placeholder} = DTOPipelineData.deserialize({placeholder}_payload)\n"
+                    code += f"\t\telse:\n"
+                    code += f"\t\t\t{placeholder} = None\n"
                     code += f"\t\t{me_port} = ({placeholder}, '{inp_port}'),\n"
             code += "\t)\n\n"
 

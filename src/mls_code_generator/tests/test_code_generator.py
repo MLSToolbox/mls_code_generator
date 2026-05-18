@@ -101,7 +101,17 @@ def test_generate_code_single_service_e2e(ready_pipeline_single_service):
 
     if len(svc_ids) == 1:
         module_text = cg.modules[f"service_{svc_ids[0]}_main"]
-        assert "TODO (IB5/IB6)" not in module_text
+        aconns = classify_pipeline_connections(pipeline)
+        externals = [
+            c for c in aconns
+            if getattr(c.conn_type, "value", None) == "external"
+            or getattr(c.conn_type, "name", None) == "EXTERNAL"
+        ]
+        if externals:
+            assert "DTOPipelineData.deserialize" in module_text
+        else:
+            assert "DTOPipelineData.deserialize" not in module_text
+
 
 def test_generate_code_multi_service_e2e(ready_pipeline_multi_service):
     pipeline = ready_pipeline_multi_service
@@ -120,8 +130,9 @@ def test_generate_code_multi_service_e2e(ready_pipeline_multi_service):
         target_step = pipeline.steps[ci.target_step_id]
         placeholder = f"external_{ci.source_step_id}_to_{target_step.name}"
         module_text = cg.modules[f"service_{ci.target_service_id}_main"]
-        assert "TODO (IB5/IB6)" in module_text
+        assert "DTOPipelineData.deserialize" in module_text
         assert placeholder in module_text
+        assert "inputs.get(" in module_text or "DTOPipelineData.deserialize(" in module_text
 
 def test_services_factory_returns_flask_adapter():
     from mls_code_generator.services_factory import ServicesFactory
@@ -141,11 +152,14 @@ def test_flask_adapter_writes_app_and_readme(tmp_path):
 
     app_file = out / "app.py"
     readme = out / "README.generated"
+    dto_file = out / "dto_pipeline_data.py"
     assert app_file.exists()
     assert readme.exists()
+    assert dto_file.exists()
     content = app_file.read_text(encoding="utf-8")
     assert "def health()" in content
     assert "def execute()" in content
+    assert "from dto_pipeline_data import DTOPipelineData" in content
 
 def test_generate_code_writes_service_entrypoints(tmp_path, ready_pipeline):
     pipeline = ready_pipeline
@@ -158,3 +172,4 @@ def test_generate_code_writes_service_entrypoints(tmp_path, ready_pipeline):
         svc_path = tmp_path / "out" / "services" / str(svc_id)
         assert svc_path.exists()
         assert (svc_path / "app.py").exists()
+        assert (svc_path / "dto_pipeline_data.py").exists()
