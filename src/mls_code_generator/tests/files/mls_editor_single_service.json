@@ -422,12 +422,12 @@
         "nodeName": "Evaluate accuracy",
         "id": "eec80eae5a0bc311",
         "params": {
-          "description": {
-            "isParam": "custom",
-            "param_label": "",
-            "show": true,
-            "type": "description"
-          }
+            "description": {
+                "isParam": "custom",
+                "param_label": "",
+                "show": true,
+                "type": "description"
+            }
         }
       }
     ],

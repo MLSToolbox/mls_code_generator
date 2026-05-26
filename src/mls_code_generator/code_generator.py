@@ -174,73 +174,123 @@ class CodeGenerator:
                 conn_lookup[key] = c
 
         for svc_id, svc in pipeline.services.items():
+            svc_name = getattr(svc, "service_id", svc_id)
+
             steps_in_service = getattr(svc, "steps", [])
             svc_step_ids = {_step_id_of(s) for s in steps_in_service}
 
-        create_lines = []
-        for step in steps_in_service:
-            if hasattr(step, "params") and "link" in step.params and step.params["link"]["value"] != "":
-                continue
-            create_lines.append(f"from {step.name} import create_{step.name}")
+            create_lines = []
+            for step in steps_in_service:
+                if hasattr(step, "params") and "link" in step.params and step.params["link"]["value"] != "":
+                    continue
+                if getattr(step, "id", "") == "root":
+                    continue
+                step_name = getattr(step, "name", "") or getattr(step, "r_name", "")
+                if not step_name:
+                    continue
+                create_lines.append(f"from {step_name} import create_{step_name}")
 
-        code = ""
-        code += f'""" service_{svc_id}_main.py """\n\n'
-        code += "import warnings\n"
-        code += "warnings.filterwarnings('ignore')\n\n"
-        code += "from mls_lib.orchestration import Pipeline\n"
-        for line in sorted(set(create_lines)):
-            code += line + "\n"
-        code += "\n"
-        code += "def main():\n"
-        code += "\troot = Pipeline()\n\n"
+            code = ""
+            code += f'""" service_{svc_name}_main.py """\n\n'
+            code += "import warnings\n"
+            code += "warnings.filterwarnings('ignore')\n\n"
+            code += "from mls_lib.orchestration import Pipeline\n"
+            code += "from dto_pipeline_data import DTOPipelineData\n"
+            for line in sorted(set(create_lines)):
+                code += line + "\n"
 
-        for step in steps_in_service:
-            c_step = step
-            if hasattr(c_step, "params") and "link" in c_step.params and c_step.params["link"]["value"] != "":
-                continue
-            code += f"\t{c_step.name} = create_{c_step.name}()\n"
-        code += "\n"
+            code += "\n"
+            code += "class _ExternalSource:\n"
+            code += "\tdef __init__(self, data):\n"
+            code += "\t\tself._data = data\n\n"
+            code += "\tdef is_finished(self):\n"
+            code += "\t\treturn True\n\n"
+            code += "\tdef get_stage_output(self, port):\n"
+            code += "\t\treturn self._data\n\n"
 
-        for step in steps_in_service:
-            c_step = step
-            if hasattr(c_step, "params") and "link" in c_step.params and c_step.params["link"]["value"] != "":
-                continue
-            code += f"\troot.add_stage({c_step.name}, \n"
-            for dependency in c_step.dependencies:
-                inp_obj, inp_port, me_port = dependency
-                src_id = _step_id_of(inp_obj)
-                target_id = _step_id_of(c_step)
+            code += "def execute_service(inputs: dict):\n"
+            code += "\troot = Pipeline()\n\n"
 
-                conn_info = conn_lookup.get((src_id, target_id, me_port))
-                if conn_info is not None:
-                    is_internal = (conn_info.conn_type is ConnectionType.INTERNAL)    
+            for step in steps_in_service:
+                c_step = step
+                if hasattr(c_step, "params") and "link" in c_step.params and c_step.params["link"]["value"] != "":
+                    continue
+                if getattr(c_step, "id", "") == "root":
+                    continue
+                step_name = getattr(c_step, "name", "") or getattr(c_step, "r_name", "")
+                if not step_name:
+                    continue
+                code += f"\t{step_name} = create_{step_name}()\n"
+            code += "\n"
+
+            for step in steps_in_service:
+                c_step = step
+                if hasattr(c_step, "params") and "link" in c_step.params and c_step.params["link"]["value"] != "":
+                    continue
+                step_name = getattr(c_step, "name", None)
+                var_name = step_name if step_name else getattr(c_step, "r_name", None)
+                if not var_name:
+                    continue
+
+                pre_lines = []
+                arg_items = []
+
+                for dependency in c_step.dependencies:
+                    inp_obj, inp_port, me_port = dependency
+                    src_id = _step_id_of(inp_obj)
+
+                    conn_info = conn_lookup.get((src_id, _step_id_of(c_step), me_port))
+                    if conn_info is not None:
+                        is_internal = (conn_info.conn_type is ConnectionType.INTERNAL)
+                    else:
+                        is_internal = (src_id in svc_step_ids)
+
+                    if is_internal:
+                        src_name = getattr(inp_obj, "name", str(src_id))
+                        arg_items.append(f"\t\t{me_port} = ({src_name}, '{inp_port}'),")
+                    else:
+                        placeholder = f"external_{src_id}_to_{c_step.name}_{inp_port}"
+                        pre_lines.append(f"\t{placeholder}_payload = inputs.get('{inp_port}')")
+                        pre_lines.append(f"\tif {placeholder}_payload:")
+                        pre_lines.append(f"\t\t{placeholder} = DTOPipelineData.deserialize({placeholder}_payload)")
+                        pre_lines.append(f"\telse:")
+                        pre_lines.append(f"\t\t{placeholder} = None")
+                        pre_lines.append(f"\t{placeholder}_stage = _ExternalSource({placeholder})")
+                        arg_items.append(f"\t\t{me_port} = ({placeholder}_stage, '{inp_port}'),")
+
+                if pre_lines:
+                    for pl in pre_lines:
+                        code += pl + "\n"
+
+                if arg_items:
+                    code += f"\troot.add_stage({c_step.name}, \n"
+                    for ai in arg_items:
+                        code += ai + "\n"
+                    code += "\t)\n\n"
                 else:
-                    is_internal = (src_id in svc_step_ids)
+                    code += f"\troot.add_stage({c_step.name})\n\n"
 
-                if is_internal:
-                    src_name = getattr(inp_obj, "name", str(src_id))
-                    code += f"\t\t{me_port} = ({src_name}, '{inp_port}'),\n"
-                else:
-                    placeholder = f"external_{src_id}_to_{c_step.name}_{inp_port}"
-                    code += f"\t\t{placeholder}_payload = inputs.get('{inp_port}')\n"
-                    code += f"\t\tif {placeholder}_payload:\n"
-                    code += f"\t\t\t{placeholder} = DTOPipelineData.deserialize({placeholder}_payload)\n"
-                    code += f"\t\telse:\n"
-                    code += f"\t\t\t{placeholder} = None\n"
-                    code += f"\t\t{me_port} = ({placeholder}, '{inp_port}'),\n"
-            code += "\t)\n\n"
+            code += "\t# execute the local pipeline\n"
+            code += "\troot.execute()\n"
+            code += "\treturn {}\n\n"
 
-        code += "\troot.execute()\n"
-        code += "\nif __name__ == '__main__':\n"
-        code += "\tmain()\n"
-        module_key = f"service_{svc_id}_main"
-        self.modules[module_key] = code       
+            code += "if __name__ == '__main__':\n"
+            code += f"\tprint('Running service', '{svc_name}')\n"
+            code += "\texecute_service({})\n"
 
-        output_base = getattr(self, "output_dir", None)
-        if output_base:
-            service_output = os.path.join(output_base, "services", str(svc_id))
-            adapter = ServicesFactory.get_instance().get_service_adapter("flask")
-            adapter.generate_service_code(svc, service_output)
+            module_key = f"service_{svc_name}_main"
+            self.modules[module_key] = code
+
+            output_base = getattr(self, "output_dir", None)
+            if output_base:
+                service_output = os.path.join(output_base, "services", str(svc_name))
+                os.makedirs(service_output, exist_ok=True)
+                module_file = os.path.join(service_output, f"{module_key}.py")
+                content = code
+                with open(module_file, "w", encoding="utf-8") as mf:
+                    mf.write(content)
+                adapter = ServicesFactory.get_instance().get_service_adapter("flask")
+                adapter.generate_service_code(svc, service_output)
 
     def __get_params_file(self, pipeline):
         """

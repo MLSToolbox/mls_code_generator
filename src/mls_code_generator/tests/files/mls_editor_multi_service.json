@@ -166,7 +166,7 @@
         "targetInput": "value"
       }
     ],
-    "service_id": "monolith"
+    "service_id": "feature_engineering"
   },
   "7a73395d26fc9d60": {
     "nodes": [
@@ -354,7 +354,7 @@
         "targetInput": "truth"
       }
     ],
-    "service_id": "monolith"
+    "service_id": "model_train"
   },
   "ac66f6bd2ab55fc8": {
     "nodes": [
@@ -451,7 +451,7 @@
         "targetInput": "truth"
       }
     ],
-    "service_id": "monolith"
+    "service_id": "model_evaluation"
   },
   "c82c4176ce06b31e": {
     "nodes": [
@@ -527,7 +527,7 @@
         "targetInput": "value"
       }
     ],
-    "service_id": "monolith"
+    "service_id": "data_cleaning"
   },
   "fd87e5b07c51650b": {
     "nodes": [
@@ -587,7 +587,7 @@
         "targetInput": "value"
       }
     ],
-    "service_id": "monolith"
+    "service_id": "data_collection"
   },
   "root": {
     "nodes": [
