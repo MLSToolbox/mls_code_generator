@@ -31,12 +31,16 @@ class PipelineLoader:
         all_services = {}
         available_nodes = self.node_config
         content = self.content
+        svc_found = False
 
         ## Creating all the steps
         for step in content:
             current_step = Step(step)
             all_steps[step] = current_step
             service_id = content[step].get('service_id', 'monolith')
+            # marcar si hi ha algun service_id diferent de "monolith"
+            if service_id and str(service_id).lower() != "monolith":
+                svc_found = True
             if service_id not in all_services:
                 all_services[service_id] = Service(service_id)
             all_services[service_id].add_step(current_step)
@@ -51,7 +55,6 @@ class PipelineLoader:
                 current_step.add_node(class_node)
                 all_nodes[class_node.id] = class_node
         
-
         ## Adding connections to the steps
         for step in all_steps.values():
             step_id = step.id
@@ -112,3 +115,8 @@ class PipelineLoader:
         parent.add_steps(all_steps)
         parent.add_nodes(all_nodes)
         parent.add_services(all_services)
+
+        if svc_found:
+            parent.generation_mode = "services"
+        else:
+            parent.generation_mode = "monolith"
