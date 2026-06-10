@@ -124,9 +124,6 @@ def execute():
 
     outputs = {k: v for k, v in outputs.items() if v is not None}
 
-    if len(outputs) == 0:
-        logger.info("No direct JSON outputs. Triggering downstream choreography...")
-
     converted = {}
     for k, v in outputs.items():
         converted[k] = _convert_value_for_json(k, v)
@@ -142,7 +139,12 @@ def execute():
         logger.exception("Error reading downstream.json")
 
     if not children:
+        if len(converted) == 0:
+            logger.info("Service execution finished (No outputs to return).")
         return jsonify({"status": "success", "outputs": converted}), 200
+
+    if len(converted) == 0:
+        logger.info("No direct outputs. Propagating execution trigger downstream...")
 
     for child in children:
         target_url = "http://" + str(child) + ":5000/execute"
@@ -158,6 +160,64 @@ def execute():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=SERVICE_PORT)
+"""
+
+OPENAPI_YAML_TEMPLATE = """openapi: 3.0.3
+info:
+  title: Service {svc_name} API
+  version: 1.0.0
+  description: Auto-generated OpenAPI documentation for the '{svc_name}' REST service within the Machine Learning pipeline.
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns the status of the service to verify it is running and ready to accept requests.
+      responses:
+        '200':
+          description: Service is healthy and operational.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+  /execute:
+    post:
+      summary: Execute service logic
+      description: Receives input data or artifact references, runs the assigned pipeline stage using the core library, and registers outputs to the shared volume choreography.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inputs:
+                  type: object
+                  description: Dictionary containing expected input keys and their corresponding values or file paths.
+                  example: {{"features": "/data/artifact_123_features.pkl"}}
+      responses:
+        '200':
+          description: Stage execution completed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  outputs:
+                    type: object
+                    description: Dictionary containing generated results or downstream artifact paths.
+        '400':
+          description: Invalid JSON payload format or missing required inputs structure.
+        '500':
+          description: Internal error triggered during Machine Learning logic execution.
+        '502':
+          description: Bad gateway error when notifying the next downstream service in the choreography chain.
 """
 
 def _copy_mls_subpackages(selected: Set[str], global_mls_path: str, service_output: str):
@@ -255,32 +315,79 @@ def _collect_external_imports(root_path: str, excluded_roots: Set[str], local_na
         "sklearn": "scikit-learn",
     }
 
-    import_re_from = re.compile(r'^\s*from\s+([A-Za-z0-9_\.]+)\s+import', re.MULTILINE)
+    import_re_from = re.compile(r'^\s*from\s+([\w\.\s]+?)\s+import', re.MULTILINE)
     import_re_imp = re.compile(r'^\s*import\s+(.+)$', re.MULTILINE)
+
     externals = set()
-    for dirpath, _, filenames in os.walk(root_path):
-        for fn in filenames:
-            if not fn.endswith(".py"):
+    queue = []
+    processed = set()
+
+    for fn in os.listdir(root_path):
+        if fn.endswith(".py"):
+            queue.append(os.path.join(root_path, fn))
+
+    while queue:
+        current_file = os.path.normpath(queue.pop(0))
+        if current_file in processed:
+            continue
+        processed.add(current_file)
+
+        if not os.path.exists(current_file):
+            continue
+
+        try:
+            with open(current_file, "r", encoding="utf-8") as f:
+                content = f.read()
+        except Exception:
+            continue
+
+        current_dir = os.path.dirname(current_file)
+
+        for m in import_re_from.finditer(content):
+            module_path = m.group(1).replace(" ", "")
+            if module_path.startswith("."):
+                dots = len(module_path) - len(module_path.lstrip("."))
+                rel_module = module_path.lstrip(".")
+                target_dir = current_dir
+                for _ in range(dots - 1):
+                    target_dir = os.path.dirname(target_dir)
+                
+                if rel_module:
+                    parts = rel_module.split(".")
+                    file_cand = os.path.join(target_dir, *parts) + ".py"
+                    dir_cand = os.path.join(target_dir, *parts, "__init__.py")
+                    if os.path.exists(file_cand): queue.append(file_cand)
+                    if os.path.exists(dir_cand): queue.append(dir_cand)
                 continue
-            fp = os.path.join(dirpath, fn)
-            try:
-                with open(fp, "r", encoding="utf-8") as fh:
-                    content = fh.read()
-            except Exception:
-                continue
-            for m in import_re_from.finditer(content):
-                root = m.group(1).split(".")[0]
+
+            root = module_path.split(".")[0]
+            if root == "mls_lib":
+                parts = module_path.split(".")
+                file_cand = os.path.join(root_path, *parts) + ".py"
+                dir_cand = os.path.join(root_path, *parts, "__init__.py")
+                if os.path.exists(file_cand): queue.append(file_cand)
+                if os.path.exists(dir_cand): queue.append(dir_cand)
+            else:
                 root_mapped = PACKAGE_ALIASES.get(root, root)
-                if root and root_mapped not in excluded_roots and root_mapped not in local_names and root_mapped not in stdlib_roots:
+                if root_mapped and root_mapped not in stdlib_roots and root_mapped not in local_names:
                     externals.add(root_mapped)
-            for m in import_re_imp.finditer(content):
-                groups = m.group(1)
-                parts = [p.strip().split()[0] for p in groups.split(",") if p.strip()]
-                for root in parts:
-                    root = root.split(".")[0]
+
+        for m in import_re_imp.finditer(content):
+            groups = m.group(1)
+            parts = [p.strip().split()[0] for p in groups.split(",") if p.strip()]
+            for module_path in parts:
+                root = module_path.split(".")[0]
+                if root == "mls_lib":
+                    sub_parts = module_path.split(".")
+                    file_cand = os.path.join(root_path, *sub_parts) + ".py"
+                    dir_cand = os.path.join(root_path, *sub_parts, "__init__.py")
+                    if os.path.exists(file_cand): queue.append(file_cand)
+                    if os.path.exists(dir_cand): queue.append(dir_cand)
+                else:
                     root_mapped = PACKAGE_ALIASES.get(root, root)
-                    if root and root_mapped not in excluded_roots and root_mapped not in local_names and root_mapped not in stdlib_roots:
+                    if root_mapped and root_mapped not in stdlib_roots and root_mapped not in local_names:
                         externals.add(root_mapped)
+
     return externals
 
 class FlaskServiceAdapter(IServiceAdapter):
@@ -370,7 +477,7 @@ class FlaskServiceAdapter(IServiceAdapter):
             if ext not in filtered_reqs:
                 filtered_reqs.append(ext)
 
-        mvp_reqs = ["flask", "pandas", "pyarrow", "requests", "scikit-learn", "pyyaml", "joblib"]
+        mvp_reqs = ["flask", "requests", "pyyaml", "joblib"]
         all_reqs = sorted(set(filtered_reqs) | set(mvp_reqs))
 
         req_path = os.path.join(output_path, "requirements.txt")
@@ -414,6 +521,11 @@ CMD ["python", "app.py"]
         dockerfile_path = os.path.join(output_path, "Dockerfile")
         with open(dockerfile_path, "w", encoding="utf-8") as df:
             df.write(dockerfile_content)
+
+        svc_name = getattr(service, "service_id", "unknown")
+        openapi_content = OPENAPI_YAML_TEMPLATE.format(svc_name=svc_name)
+        with open(os.path.join(output_path, "openapi.yaml"), "w", encoding="utf-8") as f:
+            f.write(openapi_content)
 
         readme_path = os.path.join(output_path, "README.generated")
         with open(readme_path, "w", encoding="utf-8") as f:
