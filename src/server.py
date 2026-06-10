@@ -41,13 +41,17 @@ def create_app():
 
     pipeline = Pipeline()
     pipeline.load_pipeline(pipeline_loader)
-    code_generator = CodeGenerator()
-    code_generator.generate_code(pipeline)
 
     path_head = "./" + str(uuid.uuid4())
     path = path_head + "/src/"
     os.mkdir(path_head)
     os.mkdir(path)
+
+    code_generator = CodeGenerator()
+    code_generator.output_dir = path
+    code_generator.generate_code(pipeline)
+
+    generation_mode = getattr(pipeline, "generation_mode", "monolith")
 
     code_packer = CodePacker()
     code_packer.generate_package(
@@ -55,6 +59,7 @@ def create_app():
         params=code_generator.get_params(),
         write_path=path,
         mls_path="./mls_lib/mls_lib/",
+        services_mode=(generation_mode == "services"),
     )
     shutil.make_archive(path_head, "zip", path_head)
 
