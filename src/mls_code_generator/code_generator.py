@@ -175,8 +175,25 @@ def _write_compose_with_isolated_volumes(output_base: str, sanitized_map: dict, 
         compose["services"]["starter"] = starter_entry
 
     compose_file = os.path.join(output_base, "docker-compose.yml")
+    yaml_str = yaml.safe_dump(compose, sort_keys=False)
+
+    base_port = 5000
+    for original_name, safe_name in sanitized_map.items():
+        search_str = f"  {safe_name}:\n"
+        
+        comment_block = (
+            f"  {safe_name}:\n"
+            f"    # Uncomment the following lines to expose the service to your host machine (e.g., for Swagger/Postman)\n"
+            f"    # ports:\n"
+            f"    #   - \"{base_port}:5000\"\n"
+        )
+        
+        yaml_str = yaml_str.replace(search_str, comment_block)
+        base_port += 1
+
     with open(compose_file, "w", encoding="utf-8") as cf:
-        yaml.safe_dump(compose, cf, sort_keys=False)
+        cf.write(yaml_str)
+        
     return compose_file
 
 

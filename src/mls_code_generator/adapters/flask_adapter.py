@@ -167,6 +167,14 @@ info:
   title: Service {svc_name} API
   version: 1.0.0
   description: Auto-generated OpenAPI documentation for the '{svc_name}' REST service within the Machine Learning pipeline.
+servers:
+  - url: http://localhost:5000
+    description: >
+      Default local development server. 
+      [IMPORTANT] To use this API with Swagger UI or Postman:
+      1. Go to the generated 'docker-compose.yml'.
+      2. Uncomment the 'ports' section for this service.
+      3. If your external port is different from 5000, or you are on a remote server, update this URL accordingly (e.g., http://YOUR_IP:YOUR_PORT).
 paths:
   /health:
     get:
