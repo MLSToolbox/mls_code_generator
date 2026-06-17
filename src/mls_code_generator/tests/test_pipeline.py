@@ -1,18 +1,21 @@
 import pytest
 import json
+import os
 from unittest.mock import Mock
 from ..types import Pipeline
 from ..pipeline_loader import PipelineLoader
 from ..configuration_loader import ConfigLoader
+
+BASE_DIR = os.path.dirname(__file__)
 
 @pytest.fixture
 def pipeline() -> Pipeline:
     return Pipeline()
 @pytest.fixture
 def ready_pipeline_loader() -> PipelineLoader:
-    with open("./tests/files/nodes.json", "r", encoding="utf-8") as file:
+    with open(os.path.join(BASE_DIR, "files", "nodes.json"), "r", encoding="utf-8") as file:
         nodes = json.load(file)["nodes"]
-    with open("./tests/files/mls_editor_fixed.json", "r", encoding="utf-8") as file:
+    with open(os.path.join(BASE_DIR, "files", "mls_editor_fixed.json"), "r", encoding="utf-8") as file:
         code = json.load(file)
 
     node_configuration = ConfigLoader(content=nodes)
